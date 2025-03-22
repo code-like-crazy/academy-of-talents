@@ -106,7 +106,7 @@ export function LoginForm() {
           />
           <Button
             type="submit"
-            className="bg-secondary/90 hover:bg-secondary/80 active:bg-secondary/70 font-heading w-full text-lg shadow-lg backdrop-blur-sm transition-colors"
+            className="bg-secondary/90 hover:bg-secondary/80 active:bg-secondary/70 w-full shadow-lg backdrop-blur-sm transition-colors"
             disabled={isPending}
           >
             {isPending ? "Logging in..." : "Login"}
