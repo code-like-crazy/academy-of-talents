@@ -189,9 +189,38 @@ const Experience = () => {
 
 export const Landing = () => {
   return (
-    <Canvas style={{ background: "#87CEEB" }}>
-      <Experience />
-      <fog attach="fog" args={["#87CEEB", 12, 30]} />
-    </Canvas>
+    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+      <Canvas style={{ background: "#87CEEB" }}>
+        <Experience />
+        <fog attach="fog" args={["#87CEEB", 12, 30]} />
+      </Canvas>
+      <button
+        style={{
+          position: 'absolute',
+          bottom: '160px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          padding: '15px 40px',
+          fontSize: '18px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '25px',
+          cursor: 'pointer',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          transition: 'all 0.3s ease',
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.backgroundColor = '#45a049';
+          e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.backgroundColor = '#4CAF50';
+          e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
+        }}
+      >
+        Start
+      </button>
+    </div>
   );
 };
