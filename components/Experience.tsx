@@ -7,22 +7,24 @@ import { TypingBox } from "./TypingBox";
 
 export const Experience = () => {
     return (
-        <>
-            <div className="z-10 md:justify-center fixed bottom-4 left-4 right-4 flex gap-3 flex-wrap justify-stretch">
+        <div className="relative w-full h-full">
+            <div className="absolute inset-0">
+                <Canvas camera={{
+                    position: [0, 0, 0.00001],
+                    fov: 75
+                }}>
+                    <CameraManager />
+                    <Environment preset="sunset" />
+                    <ambientLight intensity={0.3} color="white" />
+                    <Teacher teacher="krins" position={[-12.3, -12.0, -25.0]} scale={7.0} rotation-y={MathUtils.degToRad(30)}/>
+                    {/* <Gltf src="/models/anime_class_room.glb" position={[2.5, -2.8, 10.0]} rotation={[0, Math.PI, 0]} /> */}
+                    <Gltf src="/models/anime_classroom.glb" position={[-12.3, -20.0, 59.0]} rotation={[0, MathUtils.degToRad(270), 0]} />
+                </Canvas>
+            </div>
+            <div className="absolute bottom-4 left-4 right-4 z-10">
                 <TypingBox />
             </div>
-            <Canvas camera={{
-                position: [0, 0, 0.00001],
-                fov: 75
-            }}>
-                <CameraManager />
-                <Environment preset="sunset" />
-                <ambientLight intensity={0.3} color="white" />
-                <Teacher teacher="krins" position={[-12.3, -12.0, -25.0]} scale={7.0} rotation-y={MathUtils.degToRad(30)}/>
-                {/* <Gltf src="/models/anime_class_room.glb" position={[2.5, -2.8, 10.0]} rotation={[0, Math.PI, 0]} /> */}
-                <Gltf src="/models/anime_classroom.glb" position={[-12.3, -20.0, 59.0]} rotation={[0, MathUtils.degToRad(270), 0]} />
-            </Canvas>
-        </>
+        </div>
     )
 }
 

@@ -1,7 +1,7 @@
 "use client"
 import { Environment, OrbitControls, ContactShadows } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useRef, useState } from "react";
 import { MathUtils } from "three";
 import * as THREE from "three";
 import { useControls } from "leva";
@@ -13,6 +13,7 @@ import TruckFlat from "./graphs/TruckFlat";
 import Tree from "./graphs/Tree";
 import { randFloatSpread } from "three/src/math/MathUtils.js";
 import { useGLTF } from "@react-three/drei";
+import { Experience } from "./Experience";
 
 const OFFSET_X = 35;
 const ROAD_BLOCK_WIDTH = 2; // Approximate width of each road block
@@ -159,18 +160,64 @@ const Background = () => {
   );
 };
 
-const Experience = () => {
+const LandingExperience = ({ isZooming, onAnimationComplete }: { isZooming: boolean; onAnimationComplete: () => void }) => {
+  const { camera } = useThree();
+  const controlsRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (isZooming && camera && controlsRef.current) {
+      // Disable controls during animation
+      controlsRef.current.enabled = false;
+      
+      // Animate camera position and target
+      const startPosition = camera.position.clone();
+      const startTarget = controlsRef.current.target.clone();
+      
+      // Adjust these values to get a better view of the duck's face
+      const endPosition = new THREE.Vector3(0.4, 0.1, 0.6);
+      const endTarget = new THREE.Vector3(0.9, 0.1, -0.5);
+      
+      const duration = 2000; // 2 seconds
+      const startTime = Date.now();
+
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function for smooth animation
+        const easeProgress = progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        camera.position.lerpVectors(startPosition, endPosition, easeProgress);
+        controlsRef.current.target.lerpVectors(startTarget, endTarget, easeProgress);
+        controlsRef.current.update();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // Re-enable controls after animation
+          controlsRef.current.enabled = true;
+          // Notify parent that animation is complete
+          setTimeout(onAnimationComplete, 2000); // Wait 2 seconds before calling onAnimationComplete
+        }
+      };
+
+      animate();
+    }
+  }, [isZooming, camera, onAnimationComplete]);
+
   return (
     <>
       <OrbitControls
-        minAzimuthAngle={MathUtils.degToRad(-15)}
-        maxAzimuthAngle={MathUtils.degToRad(15)}
+        ref={controlsRef}
+        minAzimuthAngle={MathUtils.degToRad(-45)}
+        maxAzimuthAngle={MathUtils.degToRad(45)}
         minPolarAngle={MathUtils.degToRad(45)}
         maxPolarAngle={MathUtils.degToRad(90)}
-        minDistance={2}
-        maxDistance={15}
+        minDistance={1}
+        maxDistance={8}
       />
-      {/* <OrbitControls /> */}
       <ambientLight intensity={0.2} />
       <Environment preset="sunset" blur={0.8} />
       <group position={[0, -1, 0]}>
@@ -180,7 +227,6 @@ const Experience = () => {
           position={[0.9, 0, -0.5]}
           scale={[0.5, 0.5, 0.5]}
         />
-        
         <ContactShadows scale={[16, 16]} opacity={0.42} />
       </group>
     </>
@@ -188,10 +234,25 @@ const Experience = () => {
 };
 
 export const Landing = () => {
+  const [isZooming, setIsZooming] = useState(false);
+  const [showExperience, setShowExperience] = useState(false);
+
+  const handleStartClick = () => {
+    setIsZooming(true);
+  };
+
+  const handleAnimationComplete = () => {
+    setShowExperience(true);
+  };
+
+  if (showExperience) {
+    return <Experience />;
+  }
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
       <Canvas style={{ background: "#87CEEB" }}>
-        <Experience />
+        <LandingExperience isZooming={isZooming} onAnimationComplete={handleAnimationComplete} />
         <fog attach="fog" args={["#87CEEB", 12, 30]} />
       </Canvas>
       <button
@@ -209,6 +270,7 @@ export const Landing = () => {
           cursor: 'pointer',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
           transition: 'all 0.3s ease',
+          zIndex: 1000,
         }}
         onMouseOver={(e) => {
           e.currentTarget.style.backgroundColor = '#45a049';
@@ -218,6 +280,7 @@ export const Landing = () => {
           e.currentTarget.style.backgroundColor = '#4CAF50';
           e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
         }}
+        onClick={handleStartClick}
       >
         Start
       </button>
