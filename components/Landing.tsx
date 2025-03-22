@@ -12,8 +12,11 @@ import TreeBeech from "./graphs/TreeBeech";
 import TruckFlat from "./graphs/TruckFlat";
 import Tree from "./graphs/Tree";
 import { randFloatSpread } from "three/src/math/MathUtils.js";
+import { useGLTF } from "@react-three/drei";
 
 const OFFSET_X = 35;
+const ROAD_BLOCK_WIDTH = 2; // Approximate width of each road block
+const ROAD_BLOCKS_NUMBER = Math.ceil(OFFSET_X * 2 / ROAD_BLOCK_WIDTH) + 2; // Number of blocks needed to cover the view
 const TREES_NUMBER = 10;
 const TREES_SPEED = 0.03;
 const RANDOMIZER_STRENGTH_POSITION = 0.42;
@@ -71,6 +74,11 @@ const MovingCar = (props: { children: React.ReactNode }) => {
   return <group ref={ref}>{props.children}</group>
 };
 
+function RoadBlock(props: { position?: [number, number, number]; scale?: [number, number, number] }) {
+  const { scene } = useGLTF("/models/road_block.glb");
+  return <primitive object={scene} scale={props.scale ?? [0.5, 0.5, 0.5]} position={props.position} />;
+}
+
 const Background = () => {
   const ref = useRef<THREE.Group>(null);
 
@@ -117,6 +125,16 @@ const Background = () => {
       ))}
 
 </group><group position={[0, 0, -2]} ref={ref}>
+      {/* Road blocks */}
+      {[...Array(ROAD_BLOCKS_NUMBER)].map((_v, index) => (
+        <RoadBlock
+          key={`road-${index}`}
+          scale={[120, 3, 8]}
+          // position={[-OFFSET_X + (index * ROAD_BLOCK_WIDTH), -0.5, 0]}
+          position={[2, 0, -1]}
+        />
+      ))}
+      
       <MovingCar>
         <TruckFlat scale={[1.0, 1.0, 1.0]} position={[2, 0, 0]} rotation-y={MathUtils.degToRad(270)}/>
       </MovingCar>
@@ -138,13 +156,14 @@ const Experience = () => {
         minDistance={2}
         maxDistance={15}
       />
+      {/* <OrbitControls /> */}
       <ambientLight intensity={0.2} />
       <Environment preset="sunset" blur={0.8} />
       <group position={[0, -1, 0]}>
         <Background />
         <Duck
           rotation-y={MathUtils.degToRad(270)}
-          position={[0.9, 0, 0]}
+          position={[0.9, 0, -0.5]}
           scale={[0.5, 0.5, 0.5]}
         />
         
