@@ -45,3 +45,4 @@ Teacher model
 https://sketchfab.com/3d-models/zero-two-a2dec30168e9454a97e83ad331ab859c
 
 Road block by Luca Regazzi (okon3) [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/e3QRTZLNQU5)
+Floor Grass Sliced B by Isa Lousberg (https://poly.pizza/m/UMKvhGhK90)

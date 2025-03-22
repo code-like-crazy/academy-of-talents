@@ -80,6 +80,11 @@ function RoadBlock(props: { position?: [number, number, number]; scale?: [number
   return <primitive object={scene} scale={props.scale ?? [0.5, 0.5, 0.5]} position={props.position} />;
 }
 
+function GrassSlice(props: { position?: [number, number, number]; scale?: [number, number, number] }) {
+  const { scene } = useGLTF("/models/grass_slice.glb");
+  return <primitive object={scene} scale={props.scale ?? [1, 1, 1]} position={props.position} />;
+}
+
 const Background = () => {
   const ref = useRef<THREE.Group>(null);
 
@@ -145,6 +150,9 @@ const Background = () => {
       <MovingCar>
         <Taxi rotation-y={MathUtils.degToRad(270)} position={[-3, -0.02, 0]} scale={[0.8, 0.8, 0.8]}/>
       </MovingCar>
+      
+      {/* Stationary grass slice below the road */}
+      <GrassSlice position={[0, -0.1, -1]} scale={[50, 1, 40]} />
     </group></>
   );
 };
