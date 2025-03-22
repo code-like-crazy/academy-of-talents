@@ -41,3 +41,4 @@ Once the server is running, you can access:
 
 - `GET /`: Welcome message
 - `GET /health`: Health check endpoint 
+- `POST /synthesize`: Synthesize text into speech
