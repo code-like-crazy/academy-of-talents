@@ -1,47 +1,128 @@
 "use client"
 import { Environment, OrbitControls, ContactShadows } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { MathUtils } from "three";
 import * as THREE from "three";
+import { useControls } from "leva";
 import Taxi from "./graphs/Taxi";
 import TreeLime from "./graphs/TreeLime";
 import Duck from "./graphs/Duck";
 import TreeBeech from "./graphs/TreeBeech";
 import TruckFlat from "./graphs/TruckFlat";
 import Tree from "./graphs/Tree";
+import { randFloatSpread } from "three/src/math/MathUtils.js";
 
-const MovingItem = (props: { children: React.ReactNode }) => {
+const OFFSET_X = 35;
+const TREES_NUMBER = 10;
+const TREES_SPEED = 0.03;
+const RANDOMIZER_STRENGTH_POSITION = 0.42;
+const RANDOMIZER_STRENGTH_SCALE = 1;
+
+const MovingItem = (props: { 
+    children: React.ReactNode; 
+    position?: [number, number, number];
+    randomizePosition?: boolean;
+    randomizeScale?: boolean;
+    speed?: number;
+}) => {
     const ref = useRef<THREE.Group>(null);
-    const delta = 0.01; // Speed of movement
+    const delta = props.speed ?? 0.05; // Speed of movement
 
     useFrame(() => {
         if (ref.current) {
             ref.current.position.x += delta;
+            if (ref.current.position.x >= OFFSET_X) {
+                ref.current.position.x = -OFFSET_X;
+            }
         }
     });
 
-    return <group ref={ref}>{props.children}</group>
+    useEffect(() => {
+        if (ref.current) {
+            if (props.randomizePosition) {
+                ref.current.position.x += randFloatSpread(RANDOMIZER_STRENGTH_POSITION);
+                ref.current.position.z += randFloatSpread(RANDOMIZER_STRENGTH_POSITION);
+            }
+            if (props.randomizeScale) {
+                ref.current.scale.x += randFloatSpread(RANDOMIZER_STRENGTH_SCALE);
+                ref.current.scale.y += randFloatSpread(RANDOMIZER_STRENGTH_SCALE);
+                ref.current.scale.z += randFloatSpread(RANDOMIZER_STRENGTH_SCALE);
+            }
+        }
+    }, []);
+
+    return <group ref={ref} position={props.position}>{props.children}</group>
+};
+
+const MovingCar = (props: { children: React.ReactNode }) => {
+  const ref = useRef<THREE.Group>(null);
+  const delta = 0.05; // Speed of movement
+
+  useFrame(() => {
+      if (ref.current) {
+          ref.current.position.x -= delta;
+          if (ref.current.position.x <= -OFFSET_X) {
+              ref.current.position.x = OFFSET_X;
+          }
+      }
+  });
+
+  return <group ref={ref}>{props.children}</group>
 };
 
 const Background = () => {
   const ref = useRef<THREE.Group>(null);
 
+  // const {treesNumber, treesSpeed} = useControls({
+  //   treesNumber: {
+  //     value: TREES_NUMBER,
+  //     min: 1,
+  //     max: 100,
+  //     step: 1,
+  //   },
+  //   treesSpeed: {
+  //     value: TREES_SPEED,
+  //     min: 0.01,
+  //     max: 0.1,
+  //     step: 0.01,
+  //   }
+  // })
+  const {treesNumber, treesSpeed} = {treesNumber: TREES_NUMBER, treesSpeed: TREES_SPEED}
+
   return (
     <><group position={[0, 0, -5]} ref={ref}>
-            <MovingItem>
-                <TreeLime scale={[0.3, 0.3, 0.3]} position={[1, 0, 0]} />
-            </MovingItem>
+      {[...Array(treesNumber)].map((_v, index) => (
+        <MovingItem
+          key={index}
+          speed={treesSpeed}
+          position={[-OFFSET_X + (index / treesNumber) * OFFSET_X * 2, 0, -1.5]}
+          randomizePosition={true}
+          randomizeScale={true}
+        >
+          <TreeBeech scale={[0.3, 0.3, 0.3]} position={[1, 0, 0]} />
+        </MovingItem>
+      ))}
 
-            <MovingItem>
-                <TreeBeech scale={[0.3, 0.3, 0.3]} position={[4, 0, 0]} />
-            </MovingItem>
-            {/* <Tree scale={[3, 3, 3]} position={[0, 0, -6]} /> */}
+      {[...Array(treesNumber)].map((_v, index) => (
+        <MovingItem
+          key={index}
+          speed={treesSpeed}
+          position={[-OFFSET_X + (index / treesNumber) * OFFSET_X * 2, 0, -2.5]}
+          randomizePosition={true}
+          randomizeScale={true}
+        >
+          <TreeLime scale={[0.3, 0.3, 0.3]} position={[3, 0, 0]} />
+        </MovingItem>
+      ))}
 
-
-      </group><group position={[0, 0, -2]} ref={ref}>
-            <TruckFlat scale={[1.0, 1.0, 1.0]} position={[2, 0, 0]} rotation-y={MathUtils.degToRad(270)}/>
-            <Taxi rotation-y={MathUtils.degToRad(270)} position={[-3, -0.02, 0]} scale={[0.8, 0.8, 0.8]}/>
+</group><group position={[0, 0, -2]} ref={ref}>
+      <MovingCar>
+        <TruckFlat scale={[1.0, 1.0, 1.0]} position={[2, 0, 0]} rotation-y={MathUtils.degToRad(270)}/>
+      </MovingCar>
+      <MovingCar>
+        <Taxi rotation-y={MathUtils.degToRad(270)} position={[-3, -0.02, 0]} scale={[0.8, 0.8, 0.8]}/>
+      </MovingCar>
     </group></>
   );
 };
@@ -49,7 +130,14 @@ const Background = () => {
 const Experience = () => {
   return (
     <>
-      <OrbitControls />
+      <OrbitControls
+        minAzimuthAngle={MathUtils.degToRad(-15)}
+        maxAzimuthAngle={MathUtils.degToRad(15)}
+        minPolarAngle={MathUtils.degToRad(45)}
+        maxPolarAngle={MathUtils.degToRad(90)}
+        minDistance={2}
+        maxDistance={15}
+      />
       <ambientLight intensity={0.2} />
       <Environment preset="sunset" blur={0.8} />
       <group position={[0, -1, 0]}>
@@ -70,6 +158,7 @@ export const Landing = () => {
   return (
     <Canvas>
       <Experience />
+      <fog attach="fog" args={["#16a04b", 12, 30]} />
     </Canvas>
   );
 };
