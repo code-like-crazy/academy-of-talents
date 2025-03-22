@@ -25,6 +25,15 @@ export function Scene() {
           width: "100%",
           height: "100%",
         }}
+        gl={{
+          antialias: true,
+          powerPreference: "high-performance",
+          logarithmicDepthBuffer: true,
+        }}
+        dpr={[1, 2]} // Cap pixel ratio for better performance
+        performance={{
+          min: 0.5, // Allow frame rate to drop to 30 FPS before intervention
+        }}
       >
         <Suspense
           fallback={
@@ -72,9 +81,14 @@ export function Scene() {
               wheel: 2,
             }}
           />
-          <Environment preset="sunset" />
+          <Environment preset="sunset" resolution={256} />
           <ambientLight intensity={0.8} />
-          <directionalLight position={[0, 2, 1]} intensity={1.5} castShadow />
+          <directionalLight
+            position={[0, 2, 1]}
+            intensity={1.5}
+            castShadow
+            shadow-mapSize={[512, 512]}
+          />
           <Avatar position={[0, -0.3, 5]} />
           <ContactShadows opacity={0.7} />
         </Suspense>

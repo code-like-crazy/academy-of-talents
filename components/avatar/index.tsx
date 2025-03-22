@@ -97,8 +97,18 @@ const facialExpressions = {
 
 let setupMode = false;
 
+type MorphTargetState = {
+  target: string;
+  value: number;
+  currentValue: number;
+};
+
+const morphTargetsRef = new Map<string, MorphTargetState>();
+
 export function Avatar({ ...props }: JSX.IntrinsicElements["group"]) {
   const group = useRef<THREE.Group>(null);
+  const sceneRef = useRef<THREE.Object3D | null>(null);
+
   const { nodes, materials, scene } = useGLTF(
     "/models/avatars/teacher.glb",
     true,
@@ -107,7 +117,11 @@ export function Avatar({ ...props }: JSX.IntrinsicElements["group"]) {
     "/models/animations/teacher-animations.glb",
   ) as unknown as GLTF;
 
-  console.log(animations);
+  // Store scene reference for traversal
+  useEffect(() => {
+    if (!scene) return;
+    sceneRef.current = scene;
+  }, [scene]);
 
   const { actions } = useAnimations(animations, group);
   const [animation, setAnimation] = useState(
@@ -129,68 +143,94 @@ export function Avatar({ ...props }: JSX.IntrinsicElements["group"]) {
     };
   }, [animation, actions]);
 
-  const lerpMorphTarget = (target: string, value: number, speed = 0.1) => {
-    scene.traverse((child) => {
-      const skinnedMesh = child as THREE.SkinnedMesh;
-      if (
-        !skinnedMesh.isSkinnedMesh ||
-        !skinnedMesh.morphTargetDictionary ||
-        !skinnedMesh.morphTargetInfluences
-      ) {
-        return;
+  const lerpMorphTarget = useRef(
+    (target: string, value: number, speed = 0.1) => {
+      if (!sceneRef.current) return;
+
+      let state = morphTargetsRef.get(target);
+      if (!state) {
+        state = { target, value, currentValue: 0 };
+        morphTargetsRef.set(target, state);
       }
+      state.value = value;
 
-      const index = skinnedMesh.morphTargetDictionary[target];
-      if (
-        index === undefined ||
-        skinnedMesh.morphTargetInfluences[index] === undefined
-      ) {
-        return;
-      }
-
-      skinnedMesh.morphTargetInfluences[index] = THREE.MathUtils.lerp(
-        skinnedMesh.morphTargetInfluences[index],
-        value,
-        speed,
-      );
-
-      if (!setupMode) {
-        try {
-          set({
-            [target]: value,
-          });
-        } catch {
-          // Ignore errors when setting control values
-        }
-      }
-    });
-  };
-
-  useFrame(() => {
-    if (
-      !nodes.EyeLeft.morphTargetDictionary ||
-      !nodes.EyeLeft.morphTargetInfluences
-    ) {
-      return;
-    }
-
-    if (!setupMode) {
-      Object.keys(nodes.EyeLeft.morphTargetDictionary).forEach((key) => {
-        const mapping =
-          facialExpressions[facialExpression as keyof typeof facialExpressions];
-        if (key === "eyeBlinkLeft" || key === "eyeBlinkRight") {
+      sceneRef.current.traverse((child) => {
+        const skinnedMesh = child as THREE.SkinnedMesh;
+        if (
+          !skinnedMesh.isSkinnedMesh ||
+          !skinnedMesh.morphTargetDictionary ||
+          !skinnedMesh.morphTargetInfluences
+        ) {
           return;
         }
-        if (mapping && mapping[key as keyof typeof mapping]) {
-          lerpMorphTarget(key, mapping[key as keyof typeof mapping], 0.1);
-        } else {
-          lerpMorphTarget(key, 0, 0.1);
+
+        const index = skinnedMesh.morphTargetDictionary[target];
+        if (
+          index === undefined ||
+          skinnedMesh.morphTargetInfluences[index] === undefined
+        ) {
+          return;
+        }
+
+        state!.currentValue = THREE.MathUtils.lerp(
+          state!.currentValue,
+          value,
+          speed,
+        );
+        skinnedMesh.morphTargetInfluences[index] = state!.currentValue;
+
+        if (!setupMode) {
+          try {
+            set({
+              [target]: state!.currentValue,
+            });
+          } catch {
+            // Ignore errors when setting control values
+          }
         }
       });
+    },
+  ).current;
+
+  useFrame(() => {
+    if (!nodes.EyeLeft.morphTargetDictionary) return;
+
+    // Only update morph targets that need to change
+    if (!setupMode) {
+      const mapping =
+        facialExpressions[facialExpression as keyof typeof facialExpressions];
+      const morphTargets = Object.keys(nodes.EyeLeft.morphTargetDictionary);
+
+      for (const key of morphTargets) {
+        if (key === "eyeBlinkLeft" || key === "eyeBlinkRight") continue;
+
+        const targetValue = mapping
+          ? mapping[key as keyof typeof mapping] || 0
+          : 0;
+        const currentState = morphTargetsRef.get(key);
+
+        if (
+          !currentState ||
+          Math.abs(currentState.value - targetValue) > 0.001
+        ) {
+          lerpMorphTarget(key, targetValue, 0.1);
+        }
+      }
     }
 
-    lerpMorphTarget("eyeBlinkLeft", blink || winkLeft ? 1 : 0, 0.5);
-    lerpMorphTarget("eyeBlinkRight", blink || winkRight ? 1 : 0, 0.5);
+    // Handle blink states
+    const leftBlinkValue = blink || winkLeft ? 1 : 0;
+    const rightBlinkValue = blink || winkRight ? 1 : 0;
+
+    const leftState = morphTargetsRef.get("eyeBlinkLeft");
+    const rightState = morphTargetsRef.get("eyeBlinkRight");
+
+    if (!leftState || Math.abs(leftState.value - leftBlinkValue) > 0.001) {
+      lerpMorphTarget("eyeBlinkLeft", leftBlinkValue, 0.5);
+    }
+    if (!rightState || Math.abs(rightState.value - rightBlinkValue) > 0.001) {
+      lerpMorphTarget("eyeBlinkRight", rightBlinkValue, 0.5);
+    }
   });
 
   useControls("FacialExpressions", {
