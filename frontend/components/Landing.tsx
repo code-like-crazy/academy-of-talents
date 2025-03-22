@@ -292,6 +292,38 @@ export const Landing = () => {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        padding: '15px 30px',
+        zIndex: 1000,
+        fontSize: '64px',
+        fontWeight: 'bold',
+        fontFamily: '"Comic Sans MS", cursive',
+        color: '#4CAF50',
+        textAlign: 'center',
+        textShadow: `
+          2px 2px 0 #fff,
+          -2px -2px 0 #fff,
+          2px -2px 0 #fff,
+          -2px 2px 0 #fff,
+          4px 4px 0 rgba(0,0,0,0.1)
+        `,
+        letterSpacing: '1px',
+        animation: 'bounce 2s infinite'
+      }}>
+        GenAI Jesus
+      </div>
+      <style>
+        {`
+          @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+          }
+        `}
+      </style>
       <Canvas style={{ background: "#87CEEB" }}>
         <LandingExperience isZooming={isZooming} onAnimationComplete={handleAnimationComplete} />
         <fog attach="fog" args={["#87CEEB", 12, 30]} />
