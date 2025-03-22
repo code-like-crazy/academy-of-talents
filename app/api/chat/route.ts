@@ -3,13 +3,25 @@
 
 import { NextRequest } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { writeFile } from 'node:fs/promises';
 
-export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
+if (!process.env.GOOGLE_API_KEY) {
+  throw new Error('GOOGLE_API_KEY is not defined');
+}
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash",
+  systemInstruction: "You are a helpful assistant that can answer questions and help with tasks. Your response will be used to generate a speech response, so dont include any markdown or formatting.",
+});
+
+const google = {
+  llm: model,
+}
+
 
 export async function POST(req: NextRequest) {
   try {
-    const { query, history = [] } = await req.json();
+    const { query, history, assistant = [] } = await req.json();
     if (!query) {
       return new Response(JSON.stringify({ error: 'Query is required' }), {
         status: 400,
@@ -17,31 +29,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (!process.env.GOOGLE_API_KEY) {
-      throw new Error('GOOGLE_API_KEY is not defined');
-    }
-
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash",
-      systemInstruction: "I am Rhyme Rex, a friendly and knowledgeable AI assistant. I aim to provide helpful, accurate, and engaging responses while maintaining a conversational tone. I'll be direct and concise while still being thorough in my explanations. If I'm unsure about something, I'll acknowledge that uncertainty. I'm here to help you with any questions or tasks you have.",
-    });
-
-    // Format history into chat messages
-    const chatHistory = history.map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }]
-    }));
-
-
-    // Start a chat with history and system prompt
-    const chat = model.startChat({
-      history: [...chatHistory]
-    });
-
-    // Send message and get response
-    const result = await chat.sendMessage([{ text: query }]);
-    const response = await result.response.text();
+    const response = await getChatResponse(query, history);
     console.log(response);
+
+    const tts = await getSpeechResponse(response);
 
     return new Response(JSON.stringify(response), {
       headers: { 'Content-Type': 'application/json' },
@@ -55,5 +46,55 @@ export async function POST(req: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
+  }
+}
+
+async function getChatResponse(query: string, history: any[] = []) {
+  // Format history into chat messages
+  const chatHistory = history.map((msg: any) => ({
+    role: msg.role === 'user' ? 'user' : 'model',
+    parts: [{ text: msg.content }]
+  }));
+
+  // Start a chat with history and system prompt
+  const chat = google.llm.startChat({
+    history: [...chatHistory]
+  });
+
+  // Send message and get response
+  const result = await chat.sendMessage([{ text: query }]);
+  return result.response.text();
+}
+
+function getSystemPrompt(assistant: AssistantTypes) {
+  
+}
+
+async function getSpeechResponse(text: string) {
+  try {
+    const response = await fetch('http://127.0.0.1:8000/synthesize', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ text })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const audioBlob = await response.blob();
+    const audioBuffer = Buffer.from(await audioBlob.arrayBuffer());
+    
+    // Save audio file temporarily
+    const outputFile = 'temp_output.mp3';
+    await writeFile(outputFile, audioBuffer);
+
+    return outputFile;
+
+  } catch (error) {
+    console.error('Error in speech synthesis:', error);
+    throw error;
   }
 }
