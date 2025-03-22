@@ -2,6 +2,8 @@
 import { Box,Environment,Gltf,OrbitControls,CameraControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Teacher } from "./Teacher";
+import { MathUtils } from "three";
+
 export const Experience = () => {
     return (
         <Canvas camera={{
@@ -11,9 +13,9 @@ export const Experience = () => {
             <CameraManager />
             <Environment preset="sunset" />
             <ambientLight intensity={0.3} color="white" />
-            <Teacher teacher="krins" position={[-12.3, -12.0, -25.0]} scale={7.0}/>
+            <Teacher teacher="krins" position={[-12.3, -12.0, -25.0]} scale={7.0} rotation-y={MathUtils.degToRad(30)}/>
             {/* <Gltf src="/models/anime_class_room.glb" position={[2.5, -2.8, 10.0]} rotation={[0, Math.PI, 0]} /> */}
-            <Gltf src="/models/anime_classroom.glb" position={[-12.3, -20.0, 59.0]} rotation={[0, -Math.PI/2, 0]} />
+            <Gltf src="/models/anime_classroom.glb" position={[-12.3, -20.0, 59.0]} rotation={[0, MathUtils.degToRad(270), 0]} />
         </Canvas>
     )
 }
