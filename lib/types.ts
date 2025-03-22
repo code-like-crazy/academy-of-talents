@@ -45,3 +45,16 @@ export interface SearchBarProps {
   onSend: (message: string) => void;
   disabled?: boolean;
 } 
+
+export type AssistantTypes = [
+  "maths",
+  "python",
+  "javascript",
+  "science",
+  "history",
+  "geography",
+  "literature",
+  "art",
+  "music",
+  "sports",
+]
