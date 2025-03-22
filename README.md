@@ -31,3 +31,21 @@ With **two modes**—**Interactive (visual novel-style)** and **UI (modern web d
 
 ### **5. Ethical AI Safeguards**  
 - A **“Bias Corrector”** ensures all outputs are inclusive, accurate, and free from harmful biases.  
+
+
+## References
+Tutorial
+https://youtu.be/_bi4Ol0QEL4?si=jGMY1ViRIgE7X1mp
+Classroom model
+https://sketchfab.com/3d-models/anime-classroom-6e17b75780c044429323cd7ab6a5b83c
+Teacher model
+https://sketchfab.com/3d-models/zero-two-a2dec30168e9454a97e83ad331ab859c
+
+Road block by Luca Regazzi (okon3) [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/e3QRTZLNQU5)
+Floor Grass Sliced B by Isa Lousberg (https://poly.pizza/m/UMKvhGhK90)
+
+Bus by jeremy [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/bsvS0E1eo4R)
+Train by Poly by Google [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/7UGWg1k6Pwp)
+
+Quack
+https://pixabay.com/sound-effects/075176-duck-quack-40345/
