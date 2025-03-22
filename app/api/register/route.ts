@@ -5,13 +5,13 @@ import { nanoid } from "nanoid";
 
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { registerSchema } from "@/lib/validations/auth";
+import { registerApiSchema } from "@/lib/validations/auth";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const validationResult = registerSchema.safeParse(body);
+    const validationResult = registerApiSchema.safeParse(body);
 
     if (!validationResult.success) {
       return NextResponse.json(

@@ -6,6 +6,8 @@ import "./globals.css";
 
 import { auth } from "@/auth";
 
+import { Toaster } from "@/components/ui/sonner";
+
 const hina = Hina_Mincho({
   variable: "--font-hina",
   subsets: ["latin"],
@@ -39,6 +41,7 @@ export default async function RootLayout({
       <body
         className={`${hina.variable} ${noto.variable} ${geistMono.variable} min-h-svh antialiased`}
       >
+        <Toaster />
         <SessionProvider session={session}>{children}</SessionProvider>
       </body>
     </html>
