@@ -224,7 +224,7 @@ const LandingExperience = ({ isZooming, onAnimationComplete }: { isZooming: bool
         <Background />
         <Duck
           rotation-y={MathUtils.degToRad(270)}
-          position={[0.9, 0, -0.5]}
+          position={[2, 0, -0.5]}
           scale={[0.5, 0.5, 0.5]}
         />
         <ContactShadows scale={[16, 16]} opacity={0.42} />
