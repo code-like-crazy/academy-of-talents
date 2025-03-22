@@ -5,14 +5,23 @@ import { auth } from "./auth";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isAuthRoute = ["/login", "/register"].includes(pathname);
+  // TODO: update the auth routes post testing
+  const isAuthRoute = ["/login", "/register", "/chat", "/api/chat"].includes(pathname);
   const isLandingPage = pathname === "/";
 
   // Get session using NextAuth
   const session = await auth();
 
-  // Allow access to auth routes and landing page without authentication
-  if (isAuthRoute || isLandingPage) {
+  // Redirect authenticated users away from auth routes
+  if (isAuthRoute) {
+    if (session) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Allow access to landing page without authentication
+  if (isLandingPage) {
     return NextResponse.next();
   }
 
@@ -37,4 +46,5 @@ export const config = {
      */
     "/((?!api/auth|_next/static|_next/image|favicon.ico|models/|sounds/).*)",
   ],
+  {/*matcher: ["/((?!static|favicon.ico|_next|.*\\..*|api|trpc).*)", "/"],*/}
 };

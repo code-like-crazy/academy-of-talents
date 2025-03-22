@@ -6,7 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-heading: var(--font-hina);
+  --font-sans: var(--font-noto);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -44,38 +45,68 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Base Tokens */
+  --radius: 0.625rem; /* Rounded corners for buttons, cards, etc. */
+  --background: oklch(0.985 0 0); /* Off-white for backgrounds */
+  --foreground: oklch(0.145 0 0); /* Deep black for text */
+  --card: oklch(1 0 0); /* Pure white for cards */
+  --card-foreground: oklch(0.145 0 0); /* Black for card text */
+  --popover: oklch(1 0 0); /* White for popovers */
+  --popover-foreground: oklch(0.145 0 0); /* Black for popover text */
+
+  /* Primary Colors (Cherry Blossom Pink) */
+  --primary: oklch(0.8 0.15 350); /* Soft pink for primary actions */
+  --primary-foreground: oklch(0.985 0 0); /* White text on primary buttons */
+
+  /* Secondary Colors (Wooden Brown) */
+  --secondary: oklch(0.6 0.1 50); /* Light wood for secondary elements */
+  --secondary-foreground: oklch(
+    0.145 0 0
+  ); /* Black text on secondary buttons */
+
+  /* Accent Colors (Deep Red) */
+  --accent: oklch(0.5 0.2 20); /* Deep red for accents */
+  --accent-foreground: oklch(0.985 0 0); /* White text on accent elements */
+
+  /* Muted Colors (Light Gray) */
+  --muted: oklch(0.97 0 0); /* Light gray for muted backgrounds */
+  --muted-foreground: oklch(0.556 0 0); /* Gray for muted text */
+
+  /* Destructive Colors (Red for Errors) */
+  --destructive: oklch(0.577 0.245 27.325); /* Red for destructive actions */
+  --destructive-foreground: oklch(
+    0.985 0 0
+  ); /* White text on destructive buttons */
+
+  /* Borders and Inputs */
+  --border: oklch(0.922 0 0); /* Light gray for borders */
+  --input: oklch(0.922 0 0); /* Light gray for input fields */
+
+  /* Focus Ring (Gold for Highlights) */
+  --ring: oklch(0.8 0.2 80); /* Gold for focus rings */
+
+  /* Chart Colors (For Visualizations) */
+  --chart-1: oklch(0.646 0.222 41.116); /* Cherry blossom pink */
+  --chart-2: oklch(0.6 0.118 184.704); /* Navy blue */
+  --chart-3: oklch(0.398 0.07 227.392); /* Pastel green */
+  --chart-4: oklch(0.828 0.189 84.429); /* Gold */
+  --chart-5: oklch(0.769 0.188 70.08); /* Deep red */
+
+  /* Sidebar (Wooden Theme) */
+  --sidebar: oklch(0.6 0.1 50); /* Light wood for sidebar */
+  --sidebar-foreground: oklch(0.145 0 0); /* Black text on sidebar */
+  --sidebar-primary: oklch(
+    0.8 0.15 350
+  ); /* Soft pink for sidebar primary actions */
+  --sidebar-primary-foreground: oklch(
+    0.985 0 0
+  ); /* White text on sidebar primary buttons */
+  --sidebar-accent: oklch(0.5 0.2 20); /* Deep red for sidebar accents */
+  --sidebar-accent-foreground: oklch(
+    0.985 0 0
+  ); /* White text on sidebar accent elements */
+  --sidebar-border: oklch(0.922 0 0); /* Light gray for sidebar borders */
+  --sidebar-ring: oklch(0.8 0.2 80); /* Gold for sidebar focus rings */
 }
 
 .dark {
@@ -117,6 +148,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }

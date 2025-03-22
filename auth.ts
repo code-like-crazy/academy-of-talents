@@ -1,7 +1,12 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { compare } from "bcryptjs";
+import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { loginSchema } from "@/lib/validations/auth";
 
 declare module "next-auth" {
   interface User {
@@ -16,18 +21,54 @@ declare module "next-auth" {
   }
 }
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
   },
-  providers: [],
+  providers: [
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const validationResult = loginSchema.safeParse(credentials);
+
+        if (!validationResult.success) {
+          return null;
+        }
+
+        const { email, password } = validationResult.data;
+
+        const user = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, email))
+          .get();
+
+        if (!user || !user.password) {
+          return null;
+        }
+
+        const passwordsMatch = await compare(password, user.password);
+
+        if (!passwordsMatch) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          name: user.name || "",
+          email: user.email,
+          role: user.role || "user", // Ensure role is never null
+          image: user.image || null,
+        };
+      },
+    }),
+  ],
   callbacks: {
     session: ({ session, token }) => {
       if (token.sub && session.user) {

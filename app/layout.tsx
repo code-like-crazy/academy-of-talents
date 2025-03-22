@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Hina_Mincho, Noto_Sans_JP } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 
 import "./globals.css";
 
 import { auth } from "@/auth";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+import { Toaster } from "@/components/ui/sonner";
+
+const hina = Hina_Mincho({
+  variable: "--font-hina",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+const noto = Noto_Sans_JP({
+  variable: "--font-noto",
   subsets: ["latin"],
 });
 
@@ -31,8 +39,9 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${hina.variable} ${noto.variable} ${geistMono.variable} min-h-svh antialiased`}
       >
+        <Toaster />
         <SessionProvider session={session}>{children}</SessionProvider>
       </body>
     </html>
