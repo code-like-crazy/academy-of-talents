@@ -11,8 +11,16 @@ export async function middleware(request: NextRequest) {
   // Get session using NextAuth
   const session = await auth();
 
-  // Allow access to auth routes and landing page without authentication
-  if (isAuthRoute || isLandingPage) {
+  // Redirect authenticated users away from auth routes
+  if (isAuthRoute) {
+    if (session) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Allow access to landing page without authentication
+  if (isLandingPage) {
     return NextResponse.next();
   }
 
