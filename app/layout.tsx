@@ -37,7 +37,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${hina.variable} ${noto.variable} ${geistMono.variable} antialiased`}
+        className={`${hina.variable} ${noto.variable} ${geistMono.variable} min-h-svh antialiased`}
       >
         <SessionProvider session={session}>{children}</SessionProvider>
       </body>
