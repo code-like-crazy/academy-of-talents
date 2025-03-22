@@ -32,7 +32,8 @@ export const config = {
      * 2. /_next/* (Next.js internals)
      * 3. /static/* (static files)
      * 4. /favicon.ico, /sitemap.xml (public files)
+     * 5. /models/* (3D model files)
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|models/).*)",
   ],
 };
