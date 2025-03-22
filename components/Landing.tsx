@@ -179,9 +179,9 @@ const Experience = () => {
 
 export const Landing = () => {
   return (
-    <Canvas>
+    <Canvas style={{ background: "#87CEEB" }}>
       <Experience />
-      <fog attach="fog" args={["#16a04b", 12, 30]} />
+      <fog attach="fog" args={["#87CEEB", 12, 30]} />
     </Canvas>
   );
 };
