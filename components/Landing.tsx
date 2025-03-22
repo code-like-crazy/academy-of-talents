@@ -31,6 +31,7 @@ const MovingItem = (props: {
 }) => {
     const ref = useRef<THREE.Group>(null);
     const delta = props.speed ?? 0.05; // Speed of movement
+    const initialX = props.position?.[0] ?? 0;
 
     useFrame(() => {
         if (ref.current) {
@@ -55,7 +56,7 @@ const MovingItem = (props: {
         }
     }, []);
 
-    return <group ref={ref} position={props.position}>{props.children}</group>
+    return <group ref={ref} position={[initialX, props.position?.[1] ?? 0, props.position?.[2] ?? 0]}>{props.children}</group>
 };
 
 const MovingCar = (props: { children: React.ReactNode }) => {
@@ -127,12 +128,15 @@ const Background = () => {
 </group><group position={[0, 0, -2]} ref={ref}>
       {/* Road blocks */}
       {[...Array(ROAD_BLOCKS_NUMBER)].map((_v, index) => (
-        <RoadBlock
+        <MovingItem
           key={`road-${index}`}
-          scale={[120, 3, 8]}
-          // position={[-OFFSET_X + (index * ROAD_BLOCK_WIDTH), -0.5, 0]}
-          position={[2, 0, -1]}
-        />
+          speed={treesSpeed}
+          position={[OFFSET_X * 2 + (index * ROAD_BLOCK_WIDTH), 0, -1]}
+        >
+          <RoadBlock
+            scale={[120, 3, 8]}
+          />
+        </MovingItem>
       ))}
       
       <MovingCar>
