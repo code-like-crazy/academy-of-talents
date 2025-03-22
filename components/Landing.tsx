@@ -36,8 +36,11 @@ const MovingItem = (props: {
     useFrame(() => {
         if (ref.current) {
             ref.current.position.x += delta;
-            if (ref.current.position.x >= OFFSET_X) {
+            // Handle both positive and negative speeds
+            if (delta > 0 && ref.current.position.x >= OFFSET_X) {
                 ref.current.position.x = -OFFSET_X;
+            } else if (delta < 0 && ref.current.position.x <= -OFFSET_X) {
+                ref.current.position.x = OFFSET_X;
             }
         }
     });
@@ -59,22 +62,6 @@ const MovingItem = (props: {
     return <group ref={ref} position={[initialX, props.position?.[1] ?? 0, props.position?.[2] ?? 0]}>{props.children}</group>
 };
 
-const MovingCar = (props: { children: React.ReactNode }) => {
-  const ref = useRef<THREE.Group>(null);
-  const delta = 0.05; // Speed of movement
-
-  useFrame(() => {
-      if (ref.current) {
-          ref.current.position.x -= delta;
-          if (ref.current.position.x <= -OFFSET_X) {
-              ref.current.position.x = OFFSET_X;
-          }
-      }
-  });
-
-  return <group ref={ref}>{props.children}</group>
-};
-
 function RoadBlock(props: { position?: [number, number, number]; scale?: [number, number, number] }) {
   const { scene } = useGLTF("/models/road_block.glb");
   return <primitive object={scene} scale={props.scale ?? [0.5, 0.5, 0.5]} position={props.position} />;
@@ -85,24 +72,31 @@ function GrassSlice(props: { position?: [number, number, number]; scale?: [numbe
   return <primitive object={scene} scale={props.scale ?? [1, 1, 1]} position={props.position} />;
 }
 
+function Bus(props: { 
+  position?: [number, number, number]; 
+  scale?: [number, number, number]; 
+  rotation?: [number, number, number];
+  'rotation-y'?: number;
+}) {
+  const { scene } = useGLTF("/models/bus.glb");
+  return <primitive object={scene} scale={props.scale ?? [1, 1, 1]} position={props.position} rotation={props.rotation} rotation-y={props['rotation-y']} />;
+}
+
+function Train(props: { 
+  position?: [number, number, number]; 
+  scale?: [number, number, number]; 
+  rotation?: [number, number, number];
+  'rotation-y'?: number;
+}) {
+  const { scene } = useGLTF("/models/train.glb");
+  return <primitive object={scene} scale={props.scale ?? [1, 1, 1]} position={props.position} rotation={props.rotation} rotation-y={props['rotation-y']} />;
+}
+
 const Background = () => {
   const ref = useRef<THREE.Group>(null);
 
-  // const {treesNumber, treesSpeed} = useControls({
-  //   treesNumber: {
-  //     value: TREES_NUMBER,
-  //     min: 1,
-  //     max: 100,
-  //     step: 1,
-  //   },
-  //   treesSpeed: {
-  //     value: TREES_SPEED,
-  //     min: 0.01,
-  //     max: 0.1,
-  //     step: 0.01,
-  //   }
-  // })
   const {treesNumber, treesSpeed} = {treesNumber: TREES_NUMBER, treesSpeed: TREES_SPEED}
+  const vehicleSpeed = -0.05; // Negative speed to move left
 
   return (
     <><group position={[0, 0, -5]} ref={ref}>
@@ -144,12 +138,20 @@ const Background = () => {
         </MovingItem>
       ))}
       
-      <MovingCar>
+      <MovingItem speed={vehicleSpeed}>
         <TruckFlat scale={[1.0, 1.0, 1.0]} position={[2, 0, 0]} rotation-y={MathUtils.degToRad(270)}/>
-      </MovingCar>
-      <MovingCar>
+      </MovingItem>
+      <MovingItem speed={vehicleSpeed}>
         <Taxi rotation-y={MathUtils.degToRad(270)} position={[-3, -0.02, 0]} scale={[0.8, 0.8, 0.8]}/>
-      </MovingCar>
+      </MovingItem>
+      
+      <MovingItem speed={vehicleSpeed - 0.02}>
+        <Bus rotation-y={MathUtils.degToRad(270)} position={[-8, 0, -2]} scale={[0.18, 0.18, 0.18]}/>
+      </MovingItem>
+
+      <MovingItem speed={vehicleSpeed - 0.02}>
+        <Train rotation-y={MathUtils.degToRad(270)} position={[3, 0, -2]} scale={[0.05, 0.05, 0.05]}/>
+      </MovingItem>
       
       {/* Stationary grass slice below the road */}
       <GrassSlice position={[0, -0.1, -1]} scale={[50, 1, 40]} />
@@ -160,15 +162,15 @@ const Background = () => {
 const Experience = () => {
   return (
     <>
-      <OrbitControls
+      {/* <OrbitControls
         minAzimuthAngle={MathUtils.degToRad(-15)}
         maxAzimuthAngle={MathUtils.degToRad(15)}
         minPolarAngle={MathUtils.degToRad(45)}
         maxPolarAngle={MathUtils.degToRad(90)}
         minDistance={2}
         maxDistance={15}
-      />
-      {/* <OrbitControls /> */}
+      /> */}
+      <OrbitControls />
       <ambientLight intensity={0.2} />
       <Environment preset="sunset" blur={0.8} />
       <group position={[0, -1, 0]}>
