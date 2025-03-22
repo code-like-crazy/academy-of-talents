@@ -9,9 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import type {
   SpeechRecognition,
   SpeechRecognitionEvent,
-  SpeechRecognitionResultList,
-  SpeechRecognitionResult,
-  SpeechRecognitionAlternative,
   SearchBarProps,
 } from '@/lib/types';
 
@@ -81,10 +78,15 @@ export const SearchBar: FC<SearchBarProps> = ({ onSend, disabled = false }) => {
   const handleSend = async () => {
     if (!value.trim() || isSending) return;
 
-    setIsSending(true);
-    await onSend(value);
-    setValue('');
-    setIsSending(false);
+    try {
+      setIsSending(true);
+      await onSend(value);
+      setValue('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   useEffect(() => {
@@ -159,8 +161,8 @@ export const SearchBar: FC<SearchBarProps> = ({ onSend, disabled = false }) => {
           <Button
             size="icon"
             onClick={handleSend}
-            disabled={!value.trim() || isSending || disabled}
-            className={`h-10 w-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 ${!value.trim() || isSending || disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={disabled}
+            className={`h-10 w-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Send />
           </Button>

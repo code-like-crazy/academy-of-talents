@@ -29,6 +29,11 @@ export interface SpeechRecognitionAlternative {
   confidence: number;
 }
 
+export type Message = {
+  role: 'user' | 'model';
+  content: string;
+};
+
 declare global {
   interface Window {
     webkitSpeechRecognition: any;
