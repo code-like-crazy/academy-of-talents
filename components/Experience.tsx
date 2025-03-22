@@ -1,7 +1,7 @@
 "use client"
 import { Box,Environment,Gltf,OrbitControls,CameraControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-
+import { Teacher } from "./Teacher";
 export const Experience = () => {
     return (
         <Canvas camera={{
@@ -10,8 +10,10 @@ export const Experience = () => {
         }}>
             <CameraManager />
             <Environment preset="sunset" />
-            <ambientLight intensity={0.5} color="pink" />
-            <Gltf src="/models/anime_class_room.glb" position={[-2.5, -2.8, 10.0]} rotation={[0, Math.PI, 0]} />
+            <ambientLight intensity={0.3} color="white" />
+            <Teacher teacher="krins" position={[-12.3, -12.0, -25.0]} scale={7.0}/>
+            {/* <Gltf src="/models/anime_class_room.glb" position={[2.5, -2.8, 10.0]} rotation={[0, Math.PI, 0]} /> */}
+            <Gltf src="/models/anime_classroom.glb" position={[-12.3, -20.0, 59.0]} rotation={[0, -Math.PI/2, 0]} />
         </Canvas>
     )
 }

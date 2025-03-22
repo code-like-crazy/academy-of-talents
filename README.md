@@ -40,4 +40,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 Tutorial
 https://youtu.be/_bi4Ol0QEL4?si=jGMY1ViRIgE7X1mp
 Classroom model
-https://sketchfab.com/3d-models/anime-class-room-4faa1d57304d446995bc3a01af763239
+https://sketchfab.com/3d-models/anime-classroom-6e17b75780c044429323cd7ab6a5b83c
+Teacher model
+https://sketchfab.com/3d-models/zero-two-a2dec30168e9454a97e83ad331ab859c
