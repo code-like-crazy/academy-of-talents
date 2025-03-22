@@ -1,4 +1,9 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+} from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -39,3 +44,13 @@ export const sessions = sqliteTable("sessions", {
   sessionToken: text("sessionToken").notNull(),
   expires: integer("expires", { mode: "timestamp" }).notNull(),
 });
+
+export const verificationTokens = sqliteTable(
+  "verificationTokens",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
+    expires: integer("expires", { mode: "timestamp" }).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.identifier, table.token] })],
+);
