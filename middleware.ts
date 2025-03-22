@@ -33,7 +33,8 @@ export const config = {
      * 3. /static/* (static files)
      * 4. /favicon.ico, /sitemap.xml (public files)
      * 5. /models/* (3D model files)
+     * 6. /sounds/* (audio files)
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|models/).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|models/|sounds/).*)",
   ],
 };
