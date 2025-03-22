@@ -46,5 +46,5 @@ export const config = {
      */
     "/((?!api/auth|_next/static|_next/image|favicon.ico|models/|sounds/).*)",
   ],
-  {/*matcher: ["/((?!static|favicon.ico|_next|.*\\..*|api|trpc).*)", "/"],*/}
+  // matcher: ["/((?!static|favicon.ico|_next|.*\\..*|api|trpc).*)", "/"],
 };
