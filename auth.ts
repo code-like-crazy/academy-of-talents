@@ -25,7 +25,7 @@ export const {
   adapter: DrizzleAdapter(db),
   session: { strategy: "jwt" },
   pages: {
-    signIn: "/sign-in",
+    signIn: "/login",
   },
   providers: [],
   callbacks: {

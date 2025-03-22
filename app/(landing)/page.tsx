@@ -1,3 +1,5 @@
+import FadeIn from "@/components/FadeIn";
+
 export default function Home() {
-  return <p>landing</p>;
+  return <FadeIn>Landing Page</FadeIn>;
 }
