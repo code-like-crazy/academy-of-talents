@@ -162,15 +162,15 @@ const Background = () => {
 const Experience = () => {
   return (
     <>
-      {/* <OrbitControls
+      <OrbitControls
         minAzimuthAngle={MathUtils.degToRad(-15)}
         maxAzimuthAngle={MathUtils.degToRad(15)}
         minPolarAngle={MathUtils.degToRad(45)}
         maxPolarAngle={MathUtils.degToRad(90)}
         minDistance={2}
         maxDistance={15}
-      /> */}
-      <OrbitControls />
+      />
+      {/* <OrbitControls /> */}
       <ambientLight intensity={0.2} />
       <Environment preset="sunset" blur={0.8} />
       <group position={[0, -1, 0]}>
