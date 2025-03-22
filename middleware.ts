@@ -34,5 +34,17 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!static|favicon.ico|_next|.*\\..*|api|trpc).*)", "/"],
+  matcher: [
+    /*
+     * Match all paths except:
+     * 1. /api/auth/* (authentication API routes)
+     * 2. /_next/* (Next.js internals)
+     * 3. /static/* (static files)
+     * 4. /favicon.ico, /sitemap.xml (public files)
+     * 5. /models/* (3D model files)
+     * 6. /sounds/* (audio files)
+     */
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|models/|sounds/).*)",
+  ],
+  {/*matcher: ["/((?!static|favicon.ico|_next|.*\\..*|api|trpc).*)", "/"],*/}
 };
