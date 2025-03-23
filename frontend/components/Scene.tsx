@@ -1,18 +1,17 @@
 "use client";
 
-import { Suspense } from "react";
-import {
-  CameraControls,
-  ContactShadows,
-  Environment,
-  Html,
-  Loader,
-} from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
+import { useState } from "react";
 
 import { AvailableAvatars } from "@/config/avatars";
 
-import { Avatar } from "./avatar";
+import {
+  AvatarNameDisplay,
+  ChatBox,
+  ExitButton,
+  SceneCanvas,
+  SettingsDialog,
+  ZoomButton,
+} from "./scene-ui";
 
 type SceneProps = {
   type: AvailableAvatars;
@@ -27,92 +26,58 @@ export function Scene({
   text = "",
   isSpeaking = false,
 }: SceneProps) {
+  const [isChatVisible, setIsChatVisible] = useState(true);
+  // Function to handle zoom button click
+  const handleZoom = (zoomIn: boolean) => {
+    // Use type assertion to avoid TypeScript error
+    const canvas = document.querySelector("canvas");
+    const controls = canvas ? (canvas as any)["__r3f"]?.["controls"] : null;
+    if (controls) {
+      const targetDistance = zoomIn ? 1.5 : 5;
+      controls.dollyTo(targetDistance, true);
+    }
+  };
+
+  // Function to handle settings changes
+  const handleSettingChange = (setting: string, value: any) => {
+    console.log(`Setting ${setting} changed to:`, value);
+    // Here you would implement the actual setting change logic
+  };
+
+  // Function to handle message sending
+  const handleSendMessage = (message: string) => {
+    console.log("Message sent:", message);
+    // Here you would call your useChat hook to send the message
+  };
+
+  // Function to toggle chat visibility
+  const toggleChatVisibility = () => {
+    setIsChatVisible(!isChatVisible);
+  };
+
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
-      <Canvas
-        shadows
-        camera={{ position: [0, 1.5, 7], fov: 25 }}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-        }}
-        gl={{
-          antialias: true,
-          powerPreference: "high-performance",
-          logarithmicDepthBuffer: true,
-        }}
-        dpr={[1, 2]} // Cap pixel ratio for better performance
-        performance={{
-          min: 0.5, // Allow frame rate to drop to 30 FPS before intervention
-        }}
-      >
-        <Suspense
-          fallback={
-            <Html center>
-              <Loader
-                containerStyles={{
-                  background: "transparent",
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: "200px",
-                  zIndex: 1,
-                }}
-                innerStyles={{
-                  background: "rgba(0, 0, 0, 1)",
-                  padding: "12px 24px",
-                  borderRadius: "8px",
-                }}
-                barStyles={{
-                  backgroundColor: "white",
-                  height: "3px",
-                }}
-                dataStyles={{
-                  color: "white",
-                  fontSize: "14px",
-                  fontWeight: "normal",
-                }}
-              />
-            </Html>
-          }
-        >
-          <CameraControls
-            makeDefault
-            minDistance={1}
-            maxDistance={6}
-            truckSpeed={0}
-            dollySpeed={0.3}
-            azimuthRotateSpeed={0.3}
-            polarRotateSpeed={0}
-            mouseButtons={{
-              left: 0,
-              middle: 0,
-              right: 1,
-              wheel: 2,
-            }}
-          />
-          <Environment preset="sunset" resolution={256} />
-          <ambientLight intensity={1} />
-          <directionalLight
-            position={[0, 2, 1]}
-            intensity={1.5}
-            castShadow
-            shadow-mapSize={[512, 512]}
-          />
-          <Avatar
-            position={[0, -0.45, 5]}
-            type={type}
-            expression={expression}
-            text={text}
-            isSpeaking={isSpeaking}
-          />
-          <ContactShadows opacity={0.7} />
-        </Suspense>
-      </Canvas>
+      {/* 3D Scene Canvas */}
+      <SceneCanvas
+        type={type}
+        expression={expression}
+        text={text}
+        isSpeaking={isSpeaking}
+      />
+
+      {/* UI Overlay */}
+      <div className="absolute inset-0">
+        <AvatarNameDisplay type={type} />
+        <ZoomButton onZoom={handleZoom} />
+        <SettingsDialog onSettingChange={handleSettingChange} />
+        <ExitButton />
+        <ChatBox
+          avatarName={type}
+          onSendMessage={handleSendMessage}
+          isVisible={isChatVisible}
+          onToggleVisibility={toggleChatVisibility}
+        />
+      </div>
     </div>
   );
 }

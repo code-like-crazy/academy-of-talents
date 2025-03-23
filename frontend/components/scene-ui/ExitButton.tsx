@@ -1,0 +1,29 @@
+"use client";
+
+import { X } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+
+import { ExitButtonProps } from "./types";
+
+export function ExitButton({ onExit }: ExitButtonProps) {
+  const handleExit = () => {
+    if (onExit) {
+      onExit();
+    } else {
+      // Default behavior: navigate back
+      window.history.back();
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      className="absolute bottom-4 left-4 border border-slate-700/30 bg-slate-800/70 text-white backdrop-blur-sm hover:bg-slate-700/70"
+      onClick={handleExit}
+    >
+      <X className="mr-2 h-4 w-4" />
+      Exit
+    </Button>
+  );
+}
