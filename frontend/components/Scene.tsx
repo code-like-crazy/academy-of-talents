@@ -10,9 +10,15 @@ import {
 } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 
+import { AvailableAvatars } from "@/config/avatars";
+
 import { Avatar } from "./avatar";
 
-export function Scene() {
+type SceneProps = {
+  type: AvailableAvatars;
+};
+
+export function Scene({ type }: SceneProps) {
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <Canvas
@@ -89,7 +95,7 @@ export function Scene() {
             castShadow
             shadow-mapSize={[512, 512]}
           />
-          <Avatar position={[0, -0.3, 5]} />
+          <Avatar position={[0, -0.3, 5]} type={type} />
           <ContactShadows opacity={0.7} />
         </Suspense>
       </Canvas>

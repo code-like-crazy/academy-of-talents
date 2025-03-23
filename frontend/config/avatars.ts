@@ -2,18 +2,14 @@ import { DEFAULT_BLINK_SETTINGS } from "./avatar/defaults";
 import { TEACHER_ANIMATIONS_PATH, TEACHER_MODEL_PATH } from "./avatar/teacher";
 
 export interface Avatar {
-  id: string;
+  id: "teacher" | "aria" | "rex";
   name: string;
   modelPath: string;
   animationsPath: string;
   blinkSettings: BlinkSettings;
 }
 
-export interface BlinkSettings {
-  minInterval: number;
-  maxInterval: number;
-  duration: number;
-}
+export type AvailableAvatars = (typeof avatars)[number]["id"];
 
 export const avatars: Avatar[] = [
   {
@@ -24,6 +20,12 @@ export const avatars: Avatar[] = [
     blinkSettings: DEFAULT_BLINK_SETTINGS,
   },
 ];
+
+export interface BlinkSettings {
+  minInterval: number;
+  maxInterval: number;
+  duration: number;
+}
 
 export const getAvatarById = (id: string): Avatar | undefined => {
   return avatars.find((avatar) => avatar.id === id);

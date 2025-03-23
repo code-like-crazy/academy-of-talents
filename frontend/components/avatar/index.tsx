@@ -7,13 +7,15 @@ import { button, useControls } from "leva";
 import * as THREE from "three";
 import { GLTF } from "three-stdlib";
 
+import { AvailableAvatars } from "@/config/avatars";
+
 import { useAvatar } from "./hooks/useAvatar";
 import { AvatarGLTFResult } from "./types";
 
 let setupMode = false;
 
 type Props = {
-  type: "teacher"; // Add more avatar types as they become available
+  type: AvailableAvatars;
 };
 
 export function Avatar({
