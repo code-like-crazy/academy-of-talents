@@ -19,6 +19,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+GENDER_MAP = {
+    "Artistic Aria": "female",
+    "Rhyme Rex": "male", 
+    "Logic Leo": "male",
+    "Thinking Ponder": "male",
+    "Dramatic Delilah": "female",
+    "Shadow Sam": "male",
+    "Teacher": "female"
+}
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to GenAI Backend API"}
@@ -32,6 +42,7 @@ async def synthesize_speech(request: Request):
     try:
         body = await request.json()
         text = body.get("text")
+        agent_name = body.get("agent_name")
         if not text:
             raise HTTPException(status_code=400, detail="Text is required")
 
@@ -41,7 +52,7 @@ async def synthesize_speech(request: Request):
         
         voice = texttospeech.VoiceSelectionParams(
             language_code="en-US",
-            name="en-US-Studio-O",
+            name="en-US-Studio-O" if agent_name == "Teacher" else "en-US-Studio-M",
         )
 
         audio_config = texttospeech.AudioConfig(
@@ -68,6 +79,7 @@ async def synthesize_speech(request: Request):
         )
     
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
