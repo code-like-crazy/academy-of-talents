@@ -53,9 +53,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onSend, disabled = false }) => {
       };
 
       recognition.onend = () => {
-        if (isRecording) {
-          recognition.start();
-        }
+        console.log('recognition ended');
       };
 
       recognitionRef.current = recognition;
@@ -124,7 +122,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onSend, disabled = false }) => {
   }, [value]);
 
   return (
-    <div className="group relative flex w-full flex-col gap-1 rounded-3xl bg-gradient-to-br from-white to-gray-50/80 px-4 py-2 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-200 hover:shadow-[0_6px_24px_-4px_rgba(0,0,0,0.15)] hover:border-gray-200">
+    <div className="group relative flex w-full flex-col gap-1 rounded-3xl  px-4 py-2 bg-gradient-to-tr from-slate-300/30 via-gray-400/30 to-slate-600-400/30 p-4 backdrop-blur-md rounded-xl border-slate-100/30 border">
       <div className="px-2">
         <Textarea
           ref={textareaRef}
@@ -132,7 +130,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onSend, disabled = false }) => {
           onChange={(e) => setValue(e.target.value.slice(0, 2000))}
           onKeyDown={handleKeyDown}
           placeholder="Ask any questions"
-          className="w-full resize-none border-none bg-transparent px-0 py-0 text-gray-700 placeholder:text-gray-400 focus:ring-0 focus-visible:ring-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full resize-none border-none bg-transparent px-0 py-0 text-white placeholder:text-gray-400 focus:ring-0 focus-visible:ring-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
           rows={1}
           disabled={disabled}
         />
@@ -162,7 +160,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onSend, disabled = false }) => {
             size="icon"
             onClick={handleSend}
             disabled={disabled}
-            className={`h-10 w-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`h-10 w-10 rounded-full bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-50  ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Send />
           </Button>

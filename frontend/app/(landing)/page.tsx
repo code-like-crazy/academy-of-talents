@@ -3,8 +3,8 @@ import { getCurrentUser } from "@/auth";
 
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import FadeIn from "@/components/FadeIn";
-// import { Experience } from "@/components/Experience";
-import { Landing } from "@/components/landing/Landing";
+import { Experience } from "@/components/Experience";
+import { Landing } from "@/components/Landing";
 
 export default function Home() {
   return (
@@ -13,9 +13,7 @@ export default function Home() {
       <Landing />
     </main>
   );
-
-// export default async function Home() {
-
+}
   
 //   const user = await getCurrentUser();
 
@@ -35,4 +33,3 @@ export default function Home() {
 //       )}
 //     </FadeIn>
 //   );
-}

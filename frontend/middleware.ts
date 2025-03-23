@@ -6,7 +6,7 @@ import { auth } from "./auth";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   // TODO: update the auth routes post testing
-  const isAuthRoute = ["/login", "/register", "/chat", "/api/chat"].includes(pathname);
+  const isAuthRoute = ["/login", "/register", "/chat", "/api/chat", "/api/image"].includes(pathname);
   const isLandingPage = pathname === "/";
 
   // Get session using NextAuth
