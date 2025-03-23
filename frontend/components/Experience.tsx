@@ -46,7 +46,11 @@ export const Experience = () => {
             const responseData = await response.json();
             console.log('responseData', responseData);
         
-            setMessages((prev) => [...prev, { role: 'model', content: responseData.text }]);
+            setMessages((prev) => [...prev, { 
+              role: 'model', 
+              content: responseData.text,
+              image: responseData.image 
+            }]);
             
             // Play the audio response
             if (responseData.audio) {
@@ -90,6 +94,28 @@ export const Experience = () => {
                 className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col w-full items-center pb-8"
             >
                 <div className="w-full max-w-2xl">
+                    <div className="flex-1 overflow-y-auto mb-4 max-h-[300px]">
+                        {messages.map((message, index) => (
+                            <div key={index} className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+                                <div className={`inline-block p-3 rounded-lg ${
+                                    message.role === 'user' 
+                                        ? 'bg-purple-500 text-white' 
+                                        : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                    {message.content}
+                                </div>
+                                {message.image && (
+                                    <div className="mt-2">
+                                        <img 
+                                            src={message.image} 
+                                            alt="Generated image" 
+                                            className="max-w-full rounded-lg shadow-md"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                     <SearchBar onSend={handleSendMessage} disabled={sendDisabled} />
                 </div>
             </motion.div>
