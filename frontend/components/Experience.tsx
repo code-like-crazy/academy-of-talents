@@ -5,13 +5,24 @@ import { Teacher } from "./Teacher";
 import { MathUtils } from "three";
 import { TypingBox } from "./TypingBox";
 import { SearchBar } from "./custom/SearchBar";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Message } from "@/lib/types";
 import { motion } from "motion/react";
 
 export const Experience = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [sendDisabled, setSendDisabled] = useState(false);
+    const audioRef = useRef<HTMLAudioElement>(null);
+    
+    const playAudio = (base64Audio: string) => {
+        if (audioRef.current) {
+            const audioSrc = `data:audio/mp3;base64,${base64Audio}`;
+            audioRef.current.src = audioSrc;
+            audioRef.current.play().catch(error => {
+                console.error('Error playing audio:', error);
+            });
+        }
+    };
     
     const handleSendMessage = async (message: string) => {
         if (!message.trim()) return;
@@ -35,7 +46,12 @@ export const Experience = () => {
             const responseData = await response.json();
             console.log('responseData', responseData);
         
-            setMessages((prev) => [...prev, { role: 'model', content: responseData }]);
+            setMessages((prev) => [...prev, { role: 'model', content: responseData.text }]);
+            
+            // Play the audio response
+            if (responseData.audio) {
+                playAudio(responseData.audio);
+            }
         } catch (error) {
             console.error('Error streaming response:', error);
             setMessages((prev) => [
@@ -77,6 +93,7 @@ export const Experience = () => {
                     <SearchBar onSend={handleSendMessage} disabled={sendDisabled} />
                 </div>
             </motion.div>
+            <audio ref={audioRef} className="hidden" />
         </div>
     )
 }

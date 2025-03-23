@@ -4,12 +4,23 @@
 
 import { SearchBar } from "@/components/custom/SearchBar";
 import { motion } from "motion/react";
-import { useState } from "react";
-import { useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Message } from "@/lib/types";
+
 const ChatPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [sendDisabled, setSendDisabled] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const playAudio = (base64Audio: string) => {
+    if (audioRef.current) {
+      const audioSrc = `data:audio/mp3;base64,${base64Audio}`;
+      audioRef.current.src = audioSrc;
+      audioRef.current.play().catch(error => {
+        console.error('Error playing audio:', error);
+      });
+    }
+  };
 
   const handleSendMessage = async (message: string) => {
     if (!message.trim()) return;
@@ -33,7 +44,12 @@ const ChatPage = () => {
       const responseData = await response.json();
       console.log('responseData', responseData);
   
-      setMessages((prev) => [...prev, { role: 'model', content: responseData }]);
+      setMessages((prev) => [...prev, { role: 'model', content: responseData.text }]);
+      
+      // Play the audio response
+      if (responseData.audio) {
+        playAudio(responseData.audio);
+      }
     } catch (error) {
       console.error('Error streaming response:', error);
       setMessages((prev) => [
@@ -56,19 +72,21 @@ const ChatPage = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.4, ease: 'easeInOut' }}
-      className="flex-1 flex flex-col w-full items-center"
-    >
-      <div className="w-full max-w-2xl">
-        <div className="flex items-center justify-center mb-2">
-          <span className="text-xs text-zinc-400">
-            Interacting with{' '}
-            <span className="text-purple-400 font-medium">Rhyme Rex</span>
-          </span>
+        className="flex-1 flex flex-col w-full items-center"
+      >
+        <div className="w-full max-w-2xl">
+          <div className="flex items-center justify-center mb-2">
+            <span className="text-xs text-zinc-400">
+              Interacting with{' '}
+              <span className="text-purple-400 font-medium">Rhyme Rex</span>
+            </span>
+          </div>
+          <SearchBar onSend={handleSendMessage} disabled={sendDisabled} />
         </div>
-        <SearchBar onSend={handleSendMessage} disabled={sendDisabled} />
-      </div>
       </motion.div>
+      <audio ref={audioRef} className="hidden" />
     </div>
   );
 };
+
 export default ChatPage;

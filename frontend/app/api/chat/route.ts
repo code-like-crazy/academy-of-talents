@@ -3,7 +3,7 @@
 
 import { NextRequest } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { writeFile } from 'node:fs/promises';
+import { writeFile, readFile } from 'node:fs/promises';
 
 if (!process.env.GOOGLE_API_KEY) {
   throw new Error('GOOGLE_API_KEY is not defined');
@@ -32,9 +32,13 @@ export async function POST(req: NextRequest) {
     const response = await getChatResponse(query, history);
     console.log(response);
 
-    const tts = await getSpeechResponse(response);
+    const audioFile = await getSpeechResponse(response);
+    const audioBase64 = await convertAudioToBase64(audioFile);
 
-    return new Response(JSON.stringify(response), {
+    return new Response(JSON.stringify({ 
+      text: response,
+      audio: audioBase64 
+    }), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
@@ -72,7 +76,7 @@ function getSystemPrompt(assistant: AssistantTypes) {
 
 async function getSpeechResponse(text: string) {
   try {
-    const response = await fetch('http://127.0.0.1:8000/synthesize', {
+    const response = await fetch('https://c2d5-138-51-79-81.ngrok-free.app/synthesize', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -97,4 +101,9 @@ async function getSpeechResponse(text: string) {
     console.error('Error in speech synthesis:', error);
     throw error;
   }
+}
+
+async function convertAudioToBase64(filePath: string): Promise<string> {
+  const audioBuffer = await readFile(filePath);
+  return audioBuffer.toString('base64');
 }
