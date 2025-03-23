@@ -16,7 +16,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash",
 
 
 const model_intent = genAI.getGenerativeModel({ model: "gemini-2.0-flash",
-  systemInstruction: "You are the presentation assistant and you will get the user prompt. Only return JSON in the following order: {intent: 'intent'}, where you intent is either 'photo' or 'other'.",
+  systemInstruction: "You are the presentation assistant and you will get the user prompt. Only return JSON in the following order: {intent: 'intent'}, where you intent is either 'photo' or 'other'. Just sent the JSON, donst start with ```json or ```",
 });
 
 const google = {
@@ -37,7 +37,6 @@ export async function POST(req: NextRequest) {
 
 
     const intent = await getIntent(query);
-    console.log(intent);
     if (intent.intent === 'photo') {
       const image = await getImage(query);
       console.log("image");
@@ -80,21 +79,28 @@ async function getChatResponse(query: string, history: any[] = []) {
   // Format history into chat messages
   const chatHistory = history.map((msg: any) => ({
     role: msg.role === 'user' ? 'user' : 'model',
-    parts: [{ text: msg.content }]
+    parts: [{ text: msg.content || '' }] // Ensure content is never undefined
   }));
 
   // Start a chat with history and system prompt
   const chat = google.llm.startChat({
-    history: [...chatHistory]
+    history: chatHistory,
+    generationConfig: {
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 1024,
+    }
   });
 
-  // Send message and get response
-  const result = await chat.sendMessage([{ text: query }]);
-  return result.response.text();
-}
-
-function getSystemPrompt(assistant: AssistantTypes) {
-  
+  try {
+    // Send message and get response
+    const result = await chat.sendMessage([{ text: query }]);
+    return result.response.text();
+  } catch (error) {
+    console.error('Error in chat response:', error);
+    throw error;
+  }
 }
 
 async function getSpeechResponse(text: string) {
@@ -127,16 +133,44 @@ async function getSpeechResponse(text: string) {
 }
 
 async function getIntent(query: string) {
-  const chat = google.llm_intent.startChat({
-    history: []
-  });
-  console.log("sending intent");
-  const result = await chat.sendMessage([{ text: query }]);
-  console.log("got intent");
-  const text = result.response.text();
-  console.log("text", text);
-  const jsonText = text.startsWith('```json') ? text.slice(7, -3) : text;
-  return JSON.parse(jsonText);
+  try {
+    const chat = google.llm_intent.startChat({
+      history: []
+    });
+    const result = await chat.sendMessage(query);
+    const text = result.response.text();
+    console.log("raw intent response:", text);
+    
+    // Clean up the response text
+    let jsonText = text;
+    
+    // Remove markdown code block if present
+    if (text.startsWith('```json')) {
+      jsonText = text.slice(7, -3);
+    } else if (text.startsWith('```')) {
+      jsonText = text.slice(3, -3);
+    }
+    
+    // Remove any whitespace and newlines
+    jsonText = jsonText.trim();
+    
+    // Ensure the response is in the correct format
+    if (!jsonText.startsWith('{')) {
+      jsonText = `{"intent": "${jsonText}"}`;
+    }
+    
+    console.log("cleaned intent json:", jsonText);
+    
+    const parsed = JSON.parse(jsonText);
+    // Ensure the response has the correct structure
+    if (!parsed.intent) {
+      return { intent: 'other' }; // Default to 'other' if no intent is found
+    }
+    return parsed;
+  } catch (error) {
+    console.error('Error parsing intent:', error);
+    return { intent: 'other' }; // Default to 'other' on error
+  }
 }
 
 async function getImage(query: string) {
