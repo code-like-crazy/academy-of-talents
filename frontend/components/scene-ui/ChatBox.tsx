@@ -175,9 +175,11 @@ export function ChatBox({
                   {msg.content}
                 </div>
                 <div className="mt-1 text-xs text-gray-400">
-                  {msg.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
+                  {msg.timestamp.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                    hourCycle: 'h12'
                   })}
                 </div>
               </div>
