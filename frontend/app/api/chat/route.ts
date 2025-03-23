@@ -99,7 +99,7 @@ function getSystemPrompt(assistant: AssistantTypes) {
 
 async function getSpeechResponse(text: string) {
   try {
-    const response = await fetch('http://127.0.0.1:8000/synthesize', {
+    const response = await fetch(process.env.SYNTHESIS_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -134,6 +134,7 @@ async function getIntent(query: string) {
   const result = await chat.sendMessage([{ text: query }]);
   console.log("got intent");
   const text = result.response.text();
+  console.log("text", text);
   const jsonText = text.startsWith('```json') ? text.slice(7, -3) : text;
   return JSON.parse(jsonText);
 }

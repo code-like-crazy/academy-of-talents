@@ -53,26 +53,21 @@ export const Experience = () => {
             const responseData = await response.json();
             console.log('responseData', responseData);
         
+            // Set the image if it exists in the response
+            if (responseData.image) {
+                console.log('Setting new image URL:', responseData.image);
+                setCurrentImage(responseData.image);
+            }
+            
             setMessages((prev) => [...prev, { 
               role: 'model', 
               content: responseData.text,
               image: responseData.image 
             }]);
-            // Simulate API response
-            const mockResponse = {
-                text: "This is a test response with an image!",
-                audio: "base64_audio_string_here",
-                imageUrl: "https://images.saymedia-content.com/.image/t_share/MTc2MjYxMDA5ODUyNjA1NjEz/ten-facts-about-zero-two.png"
-            };
-
-            console.log('Setting new image URL:', mockResponse.imageUrl);
-            setCurrentImage(mockResponse.imageUrl);
             
-            setMessages((prev) => [...prev, { role: 'model', content: mockResponse.text }]);
-            
-            // Play the audio response
-            if (mockResponse.audio) {
-                playAudio(mockResponse.audio);
+            // Play the audio response if it exists
+            if (responseData.audio) {
+                playAudio(responseData.audio);
             }
         } catch (error) {
             console.error('Error:', error);
