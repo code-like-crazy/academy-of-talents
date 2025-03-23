@@ -63,7 +63,7 @@ export function Avatar({
     };
   }, [animation, actions]);
 
-  const lerpMorphTarget = (target: string, value: number, speed = 0.1) => {
+  const lerpMorphTarget = (target: string, value: number, speed = 0.5) => {
     scene.traverse((child) => {
       const skinnedMesh = child as THREE.SkinnedMesh;
       if (
@@ -116,9 +116,9 @@ export function Avatar({
           return;
         }
         if (mapping && mapping[key as keyof typeof mapping]) {
-          lerpMorphTarget(key, mapping[key as keyof typeof mapping], 0.1);
+          lerpMorphTarget(key, mapping[key as keyof typeof mapping], 0.5);
         } else {
-          lerpMorphTarget(key, 0, 0.1);
+          lerpMorphTarget(key, 0, 0.5);
         }
       });
     }

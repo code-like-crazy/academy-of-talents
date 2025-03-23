@@ -1,6 +1,5 @@
+import type { Bone, BufferGeometry, Material, SkinnedMesh } from "three";
 import type { GLTF } from "three-stdlib";
-import type { Material, SkinnedMesh, Bone } from "three";
-import type { BufferGeometry } from "three";
 
 export interface AvatarGLTFResult extends GLTF {
   nodes: {
@@ -13,6 +12,7 @@ export interface AvatarGLTFResult extends GLTF {
     Wolf3D_Outfit_Bottom: SkinnedMesh<BufferGeometry, Material>;
     Wolf3D_Outfit_Footwear: SkinnedMesh<BufferGeometry, Material>;
     Wolf3D_Outfit_Top: SkinnedMesh<BufferGeometry, Material>;
+    Wolf3D_Glasses?: SkinnedMesh<BufferGeometry, Material>;
     Hips: Bone;
   };
   materials: {
@@ -24,5 +24,6 @@ export interface AvatarGLTFResult extends GLTF {
     Wolf3D_Outfit_Bottom: Material;
     Wolf3D_Outfit_Footwear: Material;
     Wolf3D_Outfit_Top: Material;
+    Wolf3D_Glasses?: Material;
   };
 }

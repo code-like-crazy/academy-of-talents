@@ -1,6 +1,7 @@
 import { AvailableAvatars, getAvatarById } from "@/config/avatars";
 
 import AriaAvatar from "../AriaAvatar";
+import LeoAvatar from "../LeoAvatar";
 import RexAvatar from "../RexAvatar";
 import TeacherAvatar from "../TeacherAvatar";
 
@@ -19,6 +20,8 @@ export const useAvatar = (type: AvailableAvatars) => {
         return AriaAvatar;
       case "rex":
         return RexAvatar;
+      case "leo":
+        return LeoAvatar;
       default:
         return TeacherAvatar;
     }

@@ -5,6 +5,11 @@ import {
 } from "./avatar/aria";
 import { DEFAULT_BLINK_SETTINGS } from "./avatar/defaults";
 import {
+  LEO_ANIMATIONS_PATH,
+  LEO_MODEL_PATH,
+  leoFacialExpressions,
+} from "./avatar/leo";
+import {
   REX_ANIMATIONS_PATH,
   REX_MODEL_PATH,
   rexFacialExpressions,
@@ -16,7 +21,7 @@ import {
 } from "./avatar/teacher";
 
 export interface Avatar {
-  id: "teacher" | "aria" | "rex";
+  id: "teacher" | "aria" | "rex" | "leo";
   name: string;
   modelPath: string;
   animationsPath: string;
@@ -50,6 +55,14 @@ export const avatars: Avatar[] = [
     animationsPath: REX_ANIMATIONS_PATH,
     blinkSettings: DEFAULT_BLINK_SETTINGS,
     facialExpressions: rexFacialExpressions,
+  },
+  {
+    id: "leo",
+    name: "Leo",
+    modelPath: LEO_MODEL_PATH,
+    animationsPath: LEO_ANIMATIONS_PATH,
+    blinkSettings: DEFAULT_BLINK_SETTINGS,
+    facialExpressions: leoFacialExpressions,
   },
 ];
 
