@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/auth";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import FadeIn from "@/components/FadeIn";
 // import { Experience } from "@/components/Experience";
-import { Landing } from "@/components/Landing";
+import { Landing } from "@/components/landing/Landing";
 
 export default function Home() {
   return (
