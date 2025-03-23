@@ -11,26 +11,7 @@ export default function Home() {
     <main className="h-screen w-screen">
       {/* <Experience /> */}
       <Landing />
-      <LogoutButton />
+      {/* <LogoutButton /> */}
     </main>
   );
 }
-
-//   const user = await getCurrentUser();
-
-//   return (
-//     <FadeIn>
-//       <p className="text-4xl">Landing Page</p>
-//       {user ? (
-//         <>
-//           <p className="text-2xl">Welcome back, {user.name}!</p>
-//           <LogoutButton redirectTo="/" />
-//         </>
-//       ) : (
-//         <div className="space-x-4">
-//           <Link href="/login">Login</Link>
-//           <Link href="/register">Register</Link>
-//         </div>
-//       )}
-//     </FadeIn>
-//   );
