@@ -17,7 +17,7 @@ export function ZoomButton({ onZoom, isZoomedIn }: ZoomButtonProps) {
         onClick={handleZoomToggle}
         variant="outline"
         size="icon"
-        className="h-10 w-10 rounded-full border border-slate-700/30 bg-slate-800/70 text-white backdrop-blur-sm hover:bg-slate-700/70"
+        className="h-10 w-10 rounded-full border border-slate-700/30 bg-slate-800/70 text-white backdrop-blur-sm hover:bg-slate-700/70 hover:text-white"
       >
         {isZoomedIn ? (
           <ZoomOut className="h-5 w-5" />

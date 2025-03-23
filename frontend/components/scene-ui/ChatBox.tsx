@@ -220,7 +220,7 @@ export function ChatBox({
               </div>
               <Button
                 size="icon"
-                className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700"
+                className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 hover:text-white"
                 onClick={handleSendMessage}
                 disabled={!message.trim()}
               >

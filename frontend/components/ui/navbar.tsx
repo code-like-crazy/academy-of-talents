@@ -189,10 +189,6 @@ const NavItem = ({ href, label, icon, isActive }: NavItemProps) => {
             ? "bg-primary/15 text-primary"
             : "hover:bg-primary/5 text-foreground/70 hover:text-foreground",
         )}
-        whileHover={{
-          scale: 1.05,
-          transition: { duration: 0.2 },
-        }}
         whileTap={{
           scale: 0.95,
           transition: { duration: 0.1 },
@@ -221,10 +217,10 @@ interface NavbarProps {
 
 export function Navbar({ className, currentPath }: NavbarProps) {
   const navItems = [
-    { href: "/ui", label: "ホーム", icon: <HomeIcon /> },
-    { href: "/ui/talents", label: "才能", icon: <TalentsIcon /> },
-    { href: "/ui/about", label: "情報", icon: <AboutIcon /> },
-    { href: "/ui/contact", label: "連絡", icon: <ContactIcon /> },
+    { href: "/ui", label: "Home", icon: <HomeIcon /> },
+    { href: "/ui/talents", label: "Talents", icon: <TalentsIcon /> },
+    { href: "/ui/about", label: "About", icon: <AboutIcon /> },
+    { href: "/ui/contact", label: "Contact", icon: <ContactIcon /> },
   ];
 
   return (
