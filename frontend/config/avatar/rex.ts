@@ -1,8 +1,5 @@
 export const rexFacialExpressions: Record<string, Record<string, number>> = {
-  default: {
-    eyeLookUpRight: 0.4,
-    eyeLookUpLeft: 0.4,
-  },
+  default: {},
   smile: {
     browInnerUp: 0.2,
     eyeSquintLeft: 0.6,
@@ -11,8 +8,6 @@ export const rexFacialExpressions: Record<string, Record<string, number>> = {
     noseSneerRight: 0.3,
     mouthPressLeft: 0.8,
     mouthPressRight: 0.6,
-    eyeLookUpRight: 0.4,
-    eyeLookUpLeft: 0.4,
   },
   funnyFace: {
     noseSneerLeft: 1,
@@ -44,8 +39,6 @@ export const rexFacialExpressions: Record<string, Record<string, number>> = {
     eyeWideRight: 0.5,
     jawOpen: 0.5,
     browInnerUp: 0.5,
-    eyeLookUpRight: 0.4,
-    eyeLookUpLeft: 0.4,
   },
   angry: {
     browDownLeft: 0.6,
@@ -65,8 +58,6 @@ export const rexFacialExpressions: Record<string, Record<string, number>> = {
     mouthFunnel: 0.6,
     mouthDimpleRight: 1,
     mouthUpperUpLeft: 1,
-    eyeLookUpRight: 0.4,
-    eyeLookUpLeft: 0.4,
   },
 };
 
