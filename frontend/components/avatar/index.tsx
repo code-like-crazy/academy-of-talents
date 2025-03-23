@@ -49,7 +49,7 @@ export function Avatar({
   const [blink, setBlink] = useState(false);
   const [winkLeft, setWinkLeft] = useState(false);
   const [winkRight, setWinkRight] = useState(false);
-  const [facialExpression, setFacialExpression] = useState("");
+  const [facialExpression, setFacialExpression] = useState("default");
 
   useEffect(() => {
     if (!actions || !actions[animation]) return;
