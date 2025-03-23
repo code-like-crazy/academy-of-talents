@@ -272,7 +272,10 @@ export const Landing = () => {
   };
 
   const handleAnimationComplete = () => {
-    // Wait 1 second after animation completes before playing audio
+    // Show menu immediately after animation completes
+    setShowMenu(true);
+    
+    // Wait 1 second before playing the quack sound
     setTimeout(() => {
       if (audioRef.current) {
         audioRef.current.play().catch(error => {
@@ -281,10 +284,6 @@ export const Landing = () => {
       } else {
         console.error('Audio element not initialized');
       }
-      // Show menu after quack
-      setTimeout(() => {
-        setShowMenu(true);
-      }, 1000);
     }, 1000);
   };
 
