@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { writeFile } from 'node:fs/promises';
+import { writeFile, mkdir } from 'node:fs/promises';
+import { join } from 'path';
 
 if (!process.env.GOOGLE_API_KEY) {
   throw new Error('GOOGLE_API_KEY is not defined');
@@ -35,7 +36,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-
     prompt = await getChatResponse(prompt);
     console.log(prompt);
 
@@ -57,12 +57,23 @@ export async function POST(req: NextRequest) {
       throw new Error('No image was generated');
     }
 
+    // Ensure the images directory exists
+    const imagesDir = join(process.cwd(), 'public', 'images');
+    try {
+      await mkdir(imagesDir, { recursive: true });
+    } catch (error) {
+      console.error('Error creating images directory:', error);
+      throw error;
+    }
+
     const imageBuffer = Buffer.from(imageData, 'base64');
-    const imagePath = `public/images/${Date.now()}.png`;
+    const timestamp = Date.now();
+    const imagePath = join(imagesDir, `${timestamp}.png`);
     await writeFile(imagePath, imageBuffer);
 
+    // Return the path without the 'public/' prefix
     return new Response(JSON.stringify({ 
-      image: imagePath,
+      image: `/images/${timestamp}.png`,
       description 
     }), {
       headers: { 'Content-Type': 'application/json' },

@@ -43,8 +43,10 @@ export const config = {
      * 4. /favicon.ico, /sitemap.xml (public files)
      * 5. /models/* (3D model files)
      * 6. /sounds/* (audio files)
+     * 7. /images/* (generated images)
+     * 8. /public/images/* (public image files)
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|models/|sounds/).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|models/|sounds/|images/|public/images/).*)"
   ],
   // matcher: ["/((?!static|favicon.ico|_next|.*\\..*|api|trpc).*)", "/"],
 };

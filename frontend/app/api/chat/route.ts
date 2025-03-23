@@ -14,8 +14,14 @@ const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash",
   systemInstruction: "You are a helpful assistant that can answer questions and help with tasks. Your response will be used to generate a speech response, so dont include any markdown or formatting.",
 });
 
+
+const model_intent = genAI.getGenerativeModel({ model: "gemini-2.0-flash",
+  systemInstruction: "You are the presentation assistant and you will get the user prompt. Only return JSON in the following order: {intent: 'intent'}, where you intent is either 'photo' or 'other'.",
+});
+
 const google = {
   llm: model,
+  llm_intent: model_intent,
 }
 
 
@@ -29,18 +35,35 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const response = await getChatResponse(query, history);
-    console.log(response);
 
-    const audioFile = await getSpeechResponse(response);
-    const audioBase64 = await convertAudioToBase64(audioFile);
+    const intent = await getIntent(query);
+    console.log(intent);
+    if (intent.intent === 'photo') {
+      const image = await getImage(query);
+      console.log("image");
+      return new Response(JSON.stringify({ 
+        text: "Image",
+        image: image,
+        audio: ""
+      }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } else {
+      const response = await getChatResponse(query, history);
+      console.log(response);
 
-    return new Response(JSON.stringify({ 
-      text: response,
-      audio: audioBase64 
-    }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+      const audioFile = await getSpeechResponse(response);
+      const audioBase64 = await convertAudioToBase64(audioFile);
+
+      return new Response(JSON.stringify({ 
+        text: response,
+        audio: audioBase64,
+        image: ""
+      }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+    }
   } catch (error) {
     console.error('Error in chat endpoint:', error);
     return new Response(
@@ -76,7 +99,7 @@ function getSystemPrompt(assistant: AssistantTypes) {
 
 async function getSpeechResponse(text: string) {
   try {
-    const response = await fetch('https://c2d5-138-51-79-81.ngrok-free.app/synthesize', {
+    const response = await fetch('http://127.0.0.1:8000/synthesize', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -102,6 +125,37 @@ async function getSpeechResponse(text: string) {
     throw error;
   }
 }
+
+async function getIntent(query: string) {
+  const chat = google.llm_intent.startChat({
+    history: []
+  });
+  console.log("sending intent");
+  const result = await chat.sendMessage([{ text: query }]);
+  console.log("got intent");
+  const text = result.response.text();
+  const jsonText = text.startsWith('```json') ? text.slice(7, -3) : text;
+  return JSON.parse(jsonText);
+}
+
+async function getImage(query: string) {
+  const response = await fetch('http://localhost:3000/api/image', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ prompt: query })
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const body = await response.json();
+  // Remove the 'public/' prefix from the path
+  return body.image.replace('public/', '');
+}
+
 
 async function convertAudioToBase64(filePath: string): Promise<string> {
   const audioBuffer = await readFile(filePath);
