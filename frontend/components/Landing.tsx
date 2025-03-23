@@ -14,6 +14,7 @@ import Tree from "./graphs/Tree";
 import { randFloatSpread } from "three/src/math/MathUtils.js";
 import { useGLTF } from "@react-three/drei";
 import { Experience } from "./Experience";
+import styles from './landing/Landing.module.css';
 
 const OFFSET_X = 35;
 const ROAD_BLOCK_WIDTH = 2; // Approximate width of each road block
@@ -236,6 +237,7 @@ const LandingExperience = ({ isZooming, onAnimationComplete }: { isZooming: bool
 export const Landing = () => {
   const [isZooming, setIsZooming] = useState(false);
   const [showExperience, setShowExperience] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -270,7 +272,10 @@ export const Landing = () => {
   };
 
   const handleAnimationComplete = () => {
-    // Wait 1 second after animation completes before playing audio
+    // Show menu immediately after animation completes
+    setShowMenu(true);
+    
+    // Wait 1 second before playing the quack sound
     setTimeout(() => {
       if (audioRef.current) {
         audioRef.current.play().catch(error => {
@@ -279,11 +284,11 @@ export const Landing = () => {
       } else {
         console.error('Audio element not initialized');
       }
-      // Wait another second before showing Experience
-      setTimeout(() => {
-        setShowExperience(true);
-      }, 1000);
     }, 1000);
+  };
+
+  const handleAvatarSelect = (avatar: string) => {
+    window.location.href = `http://localhost:3000/interactive/avatar/${avatar}`;
   };
 
   if (showExperience) {
@@ -291,72 +296,39 @@ export const Landing = () => {
   }
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        padding: '15px 30px',
-        zIndex: 1000,
-        fontSize: '64px',
-        fontWeight: 'bold',
-        fontFamily: '"Comic Sans MS", cursive',
-        color: '#4CAF50',
-        textAlign: 'center',
-        textShadow: `
-          2px 2px 0 #fff,
-          -2px -2px 0 #fff,
-          2px -2px 0 #fff,
-          -2px 2px 0 #fff,
-          4px 4px 0 rgba(0,0,0,0.1)
-        `,
-        letterSpacing: '1px',
-        animation: 'bounce 2s infinite'
-      }}>
+    <div className={styles.container}>
+      <div className={styles.title}>
         The Ugly Duckling
       </div>
-      <style>
-        {`
-          @keyframes bounce {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-5px); }
-          }
-        `}
-      </style>
       <Canvas style={{ background: "#87CEEB" }}>
         <LandingExperience isZooming={isZooming} onAnimationComplete={handleAnimationComplete} />
         <fog attach="fog" args={["#87CEEB", 12, 30]} />
       </Canvas>
-      <button
-        style={{
-          position: 'absolute',
-          bottom: '160px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          padding: '15px 40px',
-          fontSize: '18px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '25px',
-          cursor: 'pointer',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          transition: 'all 0.3s ease',
-          zIndex: 1000,
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.backgroundColor = '#45a049';
-          e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)';
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.backgroundColor = '#4CAF50';
-          e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
-        }}
-        onClick={handleStartClick}
-      >
-        Start
-      </button>
+      {!isZooming && (
+        <button
+          className={styles.startButton}
+          onClick={handleStartClick}
+        >
+          Start
+        </button>
+      )}
+      {showMenu && (
+        <div className={`${styles.menuSidebar} ${showMenu ? styles.visible : ''}`}>
+          <h1 className={styles.menuTitle}>Choose Your Room</h1>
+          <button className={styles.menuButton} onClick={() => handleAvatarSelect('leo')}>
+            Leo
+          </button>
+          <button className={styles.menuButton} onClick={() => handleAvatarSelect('rex')}>
+            Rex
+          </button>
+          <button className={styles.menuButton} onClick={() => handleAvatarSelect('aria')}>
+            Aria
+          </button>
+          <button className={styles.menuButton} onClick={() => handleAvatarSelect('teacher')}>
+            Teacher
+          </button>
+        </div>
+      )}
     </div>
   );
 };
