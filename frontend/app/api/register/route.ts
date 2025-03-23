@@ -26,11 +26,10 @@ export async function POST(request: Request) {
     const { name, email, password } = validationResult.data;
 
     // Check if user already exists
-    const existingUser = await db
+    const [existingUser] = await db
       .select()
       .from(users)
-      .where(eq(users.email, email))
-      .get();
+      .where(eq(users.email, email));
 
     if (existingUser) {
       return NextResponse.json(

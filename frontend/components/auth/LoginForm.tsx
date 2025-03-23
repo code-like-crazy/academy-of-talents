@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
@@ -24,6 +25,7 @@ type LoginInput = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -51,12 +53,13 @@ export function LoginForm() {
           if (result.error === "CredentialsSignin") {
             toast.error("Invalid email or password.");
           } else {
-            toast.error(result.error);
+            toast.error("Login failed. Please try again.");
           }
           return;
         }
 
-        window.location.href = "/";
+        router.refresh();
+        router.push("/");
       } catch (error) {
         console.error("Login error:", error);
         toast.error("An unexpected error occurred. Please try again later.");
@@ -79,6 +82,7 @@ export function LoginForm() {
                     type="email"
                     placeholder="you@example.com"
                     className="bg-white/50 backdrop-blur-sm transition-colors focus:bg-white/80"
+                    autoComplete="email"
                     {...field}
                   />
                 </FormControl>
@@ -97,6 +101,7 @@ export function LoginForm() {
                     type="password"
                     placeholder="Enter your password"
                     className="bg-white/50 backdrop-blur-sm transition-colors focus:bg-white/80"
+                    autoComplete="current-password"
                     {...field}
                   />
                 </FormControl>

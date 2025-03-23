@@ -2,7 +2,9 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -20,6 +22,7 @@ import { Input } from "@/components/ui/input";
 
 export function RegisterForm() {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -46,16 +49,38 @@ export function RegisterForm() {
           }),
         });
 
-        const result = await response.json();
+        const responseData = await response.json();
 
         if (!response.ok) {
-          toast.error(result.message || "Registration failed");
+          if (response.status === 409) {
+            toast.error("An account with this email already exists");
+          } else if (response.status === 400) {
+            toast.error(responseData.message || "Invalid registration data");
+          } else {
+            toast.error("Registration failed. Please try again later.");
+          }
           return;
         }
 
-        toast.success("Registration successful! Redirecting to login...");
-        form.reset();
-        window.location.href = "/login";
+        toast.success("Account created successfully!");
+
+        const signInResult = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
+        });
+
+        if (signInResult?.error) {
+          console.error("Login error after registration:", signInResult.error);
+          toast.error(
+            "Account created but login failed. Please try logging in manually.",
+          );
+          router.push("/login");
+          return;
+        }
+
+        router.refresh();
+        router.push("/");
       } catch (error) {
         console.error("Registration error:", error);
         toast.error("Something went wrong. Please try again later.");
@@ -95,6 +120,7 @@ export function RegisterForm() {
                     type="email"
                     placeholder="you@example.com"
                     className="bg-white/50 backdrop-blur-sm transition-colors focus:bg-white/80"
+                    autoComplete="email"
                     {...field}
                   />
                 </FormControl>
@@ -113,6 +139,7 @@ export function RegisterForm() {
                     type="password"
                     placeholder="Create a password"
                     className="bg-white/50 backdrop-blur-sm transition-colors focus:bg-white/80"
+                    autoComplete="new-password"
                     {...field}
                   />
                 </FormControl>
@@ -131,6 +158,7 @@ export function RegisterForm() {
                     type="password"
                     placeholder="Confirm your password"
                     className="bg-white/50 backdrop-blur-sm transition-colors focus:bg-white/80"
+                    autoComplete="new-password"
                     {...field}
                   />
                 </FormControl>

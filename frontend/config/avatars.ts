@@ -1,3 +1,4 @@
+import { ARIA_ANIMATIONS_PATH, ARIA_MODEL_PATH } from "./avatar/aria";
 import { DEFAULT_BLINK_SETTINGS } from "./avatar/defaults";
 import { TEACHER_ANIMATIONS_PATH, TEACHER_MODEL_PATH } from "./avatar/teacher";
 
@@ -17,6 +18,13 @@ export const avatars: Avatar[] = [
     name: "Teacher",
     modelPath: TEACHER_MODEL_PATH,
     animationsPath: TEACHER_ANIMATIONS_PATH,
+    blinkSettings: DEFAULT_BLINK_SETTINGS,
+  },
+  {
+    id: "aria",
+    name: "Aria",
+    modelPath: ARIA_MODEL_PATH,
+    animationsPath: ARIA_ANIMATIONS_PATH,
     blinkSettings: DEFAULT_BLINK_SETTINGS,
   },
 ];
