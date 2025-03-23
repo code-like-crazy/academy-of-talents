@@ -173,12 +173,12 @@ export function ChatBox({
                   >
                     {msg.content}
                   </div>
-                  <div className="mt-1 text-xs text-gray-400">
+                  {/* <div className="mt-1 text-xs text-gray-400">
                     {msg.timestamp.toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
-                  </div>
+                  </div> */}
                 </div>
               ))}
             </div>
