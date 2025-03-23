@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AvailableAvatars } from "@/config/avatars";
@@ -14,6 +14,7 @@ import {
   SettingsDialog,
   ZoomButton,
 } from "./scene-ui";
+import { ImageDialog } from "./ui/image-dialog";
 
 type SceneProps = {
   type: AvailableAvatars;
@@ -37,6 +38,9 @@ export function Scene({
   const [currentExpression, setCurrentExpression] = useState(expression);
   const [currentAnimation, setCurrentAnimation] = useState("Idle");
   const [currentBackground, setCurrentBackground] = useState("sunset");
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState("");
+  const [imageDescription, setImageDescription] = useState("");
 
   // Function to handle zoom button click
   const handleZoom = () => {
@@ -122,6 +126,16 @@ export function Scene({
     avatarName: avatarType, // Use the current avatar type
   });
 
+  // Check for image in current message
+  useEffect(() => {
+    if (currentMessage?.image && avatarType === "aria") {
+      console.log("Image detected in message:", currentMessage.image);
+      setGeneratedImage(currentMessage.image);
+      setImageDescription(currentMessage.text);
+      setImageDialogOpen(true);
+    }
+  }, [currentMessage, avatarType]);
+
   // Function to handle message sending
   const handleSendMessage = (message: string) => {
     sendMessage(message);
@@ -161,6 +175,14 @@ export function Scene({
           currentMessage={currentMessage}
         />
       </div>
+
+      {/* Image Dialog */}
+      <ImageDialog
+        isOpen={imageDialogOpen}
+        onClose={() => setImageDialogOpen(false)}
+        imageUrl={generatedImage || ""}
+        description={imageDescription}
+      />
     </div>
   );
 }

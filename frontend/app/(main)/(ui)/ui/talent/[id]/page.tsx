@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -243,13 +245,13 @@ export default function TalentPage({ params }: TalentPageProps) {
               >
                 <Link href={`/ui/talent/${relatedId}`}>
                   <Card className="border-primary/20 bg-card hover:shadow-primary/20 overflow-hidden rounded-2xl transition-all hover:shadow-lg">
-                    <div className="relative aspect-video overflow-hidden rounded-t-2xl">
+                    <div className="relative aspect-video overflow-hidden rounded-lg">
                       <div className="from-primary/20 to-secondary/20 absolute inset-0 z-0 bg-gradient-to-br"></div>
                       <Image
                         src={`/backgrounds/${relatedId}.webp`}
                         alt={relatedAvatar.name}
                         fill
-                        className="z-0 rounded-t-2xl object-cover opacity-90"
+                        className="z-0 rounded-lg object-cover opacity-90"
                       />
                     </div>
                     <div className="p-4">

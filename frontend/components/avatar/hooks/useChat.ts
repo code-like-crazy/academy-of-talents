@@ -16,6 +16,7 @@ export interface ChatMessage {
   };
   facialExpression?: string;
   animation?: string;
+  image?: string; // URL to generated image
 }
 
 interface UseChatProps {

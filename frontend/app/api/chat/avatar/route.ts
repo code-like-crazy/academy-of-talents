@@ -21,6 +21,17 @@ if (!process.env.ELEVENLABS_API_KEY) {
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
+// Create a model for intent detection
+const model_intent = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash",
+  systemInstruction:
+    "You are the presentation assistant and you will get the user prompt. Only return JSON in the following order: {intent: 'intent'}, where you intent is either 'photo' or 'other'. Just sent the JSON, donst start with ```json or ```",
+});
+
+const google = {
+  llm_intent: model_intent,
+};
+
 // Define system messages for each agent
 type AgentName =
   | "Artistic Aria"
@@ -141,8 +152,6 @@ const AVATAR_EXPRESSIONS: Record<AgentName, AvatarExpressions> = {
   },
 };
 
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
 // Map avatar IDs to agent names
 const avatarIdToAgentName: Record<string, AgentName> = {
   aria: "Artistic Aria",
@@ -169,7 +178,7 @@ export async function POST(req: NextRequest) {
     const agentName = avatarIdToAgentName[agent_name] || agent_name;
 
     // Get chat response from Gemini
-    const response = await getChatResponse(message, agentName);
+    let response = await getChatResponse(message, agentName);
 
     // Generate audio from text
     const audioFile = await getSpeechResponse(response, agentName);
@@ -186,12 +195,58 @@ export async function POST(req: NextRequest) {
     // Determine facial expression and animation
     const expressionData = determineExpressionAndAnimation(agentName);
 
+    // Check if this is an image generation request
+    let imageUrl;
+    if (agent_name === "aria") {
+      try {
+        // Use intent detection to determine if this is an image request
+        const intent = await getIntent(message);
+        console.log("Intent detection result:", intent);
+
+        if (intent.intent === "photo") {
+          console.log("Image generation intent detected");
+
+          // Call the image generation API
+          const imageResponse = await fetch(`${req.nextUrl.origin}/api/image`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ prompt: message }),
+          });
+
+          if (imageResponse.ok) {
+            const imageData = await imageResponse.json();
+            console.log("Image generation response:", imageData);
+
+            // Make sure the image URL is properly formatted
+            if (imageData.image) {
+              // If the URL doesn't start with a slash, add one
+              imageUrl = imageData.image.startsWith("/")
+                ? imageData.image
+                : `/${imageData.image}`;
+
+              console.log("Setting image URL:", imageUrl);
+
+              // Update the response text to acknowledge the image generation
+              response = `I've created an image based on your request. Here it is!`;
+            } else {
+              console.error("No image URL in response:", imageData);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error in image generation process:", error);
+      }
+    }
+
     const responseData = {
       text: response,
       audio: audioBase64,
       lipsync: lipSyncData,
       facialExpression: expressionData.expression,
       animation: expressionData.animation,
+      image: imageUrl,
     };
 
     console.log(
@@ -361,6 +416,24 @@ async function generateLipSync(audioFile: string) {
     console.log(`JSON file: ${jsonFile}`);
     const startTime = Date.now();
 
+    // Check if ffmpeg is installed
+    try {
+      await execAsync("which ffmpeg");
+      console.log("ffmpeg is installed, proceeding with conversion");
+    } catch (error) {
+      console.log("ffmpeg is not installed, skipping lip sync");
+      // Return a fallback empty lip sync data structure if ffmpeg is not installed
+      return {
+        metadata: {
+          soundFile: audioFile,
+          duration: 0,
+          processedAt: new Date().toISOString(),
+          error: "FFmpeg not installed",
+        },
+        mouthCues: [],
+      };
+    }
+
     // Step 1: Convert MP3 to WAV using ffmpeg
     console.log(`Converting ${audioFile} to WAV format`);
     try {
@@ -371,9 +444,18 @@ async function generateLipSync(audioFile: string) {
       console.log(`Conversion done in ${Date.now() - startTime}ms`);
     } catch (error: any) {
       console.error("FFmpeg conversion error:", error);
-      throw new Error(
-        `Failed to convert audio to WAV format: ${error.message || "Unknown error"}`,
-      );
+      console.log("Skipping lip sync due to ffmpeg error");
+
+      // Return a fallback empty lip sync data structure if ffmpeg fails
+      return {
+        metadata: {
+          soundFile: audioFile,
+          duration: 0,
+          processedAt: new Date().toISOString(),
+          error: `FFmpeg error: ${error.message || "Unknown error"}`,
+        },
+        mouthCues: [],
+      };
     }
 
     // Step 2: Run Rhubarb on the WAV file to generate lip sync data
@@ -433,6 +515,31 @@ async function generateLipSync(audioFile: string) {
       console.log(`Lip sync data generated in ${Date.now() - startTime}ms`);
     } catch (error: any) {
       console.error("Rhubarb error:", error);
+
+      // Check if the error is related to macOS security (developer cannot be verified)
+      if (
+        error.message &&
+        error.message.includes(
+          "cannot be opened because the developer cannot be verified",
+        )
+      ) {
+        console.log(
+          "macOS security is blocking rhubarb execution. Skipping lip sync.",
+        );
+
+        // Return a fallback empty lip sync data structure
+        return {
+          metadata: {
+            soundFile: audioFile,
+            duration: 0,
+            processedAt: new Date().toISOString(),
+            error:
+              "macOS security blocked rhubarb execution. To fix this, open System Preferences > Security & Privacy and click 'Allow Anyway' for rhubarb, or run 'xattr -d com.apple.quarantine /path/to/rhubarb' in Terminal.",
+          },
+          mouthCues: [],
+        };
+      }
+
       throw new Error(
         `Failed to generate lip sync data: ${error.message || "Unknown error"}`,
       );
@@ -527,5 +634,47 @@ async function convertAudioToBase64(filePath: string): Promise<string> {
   } catch (error) {
     console.error("Error converting audio to base64:", error);
     return "";
+  }
+}
+
+// Intent detection function similar to the one in chat/route.ts
+async function getIntent(query: string) {
+  try {
+    const chat = google.llm_intent.startChat({
+      history: [],
+    });
+    const result = await chat.sendMessage(query);
+    const text = result.response.text();
+    console.log("Raw intent response:", text);
+
+    // Clean up the response text
+    let jsonText = text;
+
+    // Remove markdown code block if present
+    if (text.startsWith("```json")) {
+      jsonText = text.slice(7, -3);
+    } else if (text.startsWith("```")) {
+      jsonText = text.slice(3, -3);
+    }
+
+    // Remove any whitespace and newlines
+    jsonText = jsonText.trim();
+
+    // Ensure the response is in the correct format
+    if (!jsonText.startsWith("{")) {
+      jsonText = `{"intent": "${jsonText}"}`;
+    }
+
+    console.log("Cleaned intent json:", jsonText);
+
+    const parsed = JSON.parse(jsonText);
+    // Ensure the response has the correct structure
+    if (!parsed.intent) {
+      return { intent: "other" }; // Default to 'other' if no intent is found
+    }
+    return parsed;
+  } catch (error) {
+    console.error("Error parsing intent:", error);
+    return { intent: "other" }; // Default to 'other' on error
   }
 }

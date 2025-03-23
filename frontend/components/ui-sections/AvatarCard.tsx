@@ -22,12 +22,12 @@ export function AvatarCard({ avatar, index }: AvatarCardProps) {
       transition={{ duration: 0.5, delay: 0.1 * index }}
     >
       <Card className="border-primary/20 bg-card hover:shadow-primary/20 overflow-hidden rounded-2xl transition-all hover:-translate-y-1 hover:shadow-lg">
-        <div className="from-primary/30 to-secondary/30 relative aspect-video overflow-hidden rounded-t-2xl bg-gradient-to-br">
+        <div className="from-primary/30 to-secondary/30 relative aspect-video overflow-hidden rounded-lg bg-gradient-to-br">
           <Image
             src={`/backgrounds/${avatar.id}.webp`}
             alt={avatar.name}
             fill
-            className="rounded-t-2xl object-cover opacity-90"
+            className="rounded-lg object-cover opacity-90"
           />
         </div>
         <div className="space-y-2 p-4">

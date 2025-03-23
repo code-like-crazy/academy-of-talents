@@ -54,7 +54,7 @@ export function ImmersiveExperienceSection() {
           alt="Interactive Mode"
           width={500}
           height={300}
-          className="h-auto w-full rounded-2xl"
+          className="h-auto w-full rounded-lg"
         />
       </motion.div>
     </motion.section>
