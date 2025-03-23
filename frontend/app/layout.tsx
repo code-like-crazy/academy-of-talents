@@ -25,8 +25,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "The Ugly Duckling",
-  description: "An interactive 3D experience based on the classic fairy tale",
+  title: "Academy of Talents",
+  description: "An interactive educational platform powered by AI",
 };
 
 export default async function RootLayout({

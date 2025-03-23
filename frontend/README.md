@@ -1,5 +1,5 @@
 ## **Overview**  
-The Ugly Duckling is a **web-based platform** where users enter a virtual school filled with **AI-powered student avatars**, each specializing in a unique talent—art, music, coding, philosophy, and more. Whether you’re looking to solve a problem, learn a new skill, or just have fun, [APP NAME] offers a **personalized, gamified experience** powered by generative AI.  
+Academy of Talents is a **web-based platform** where users enter a virtual school filled with **AI-powered student avatars**, each specializing in a unique talent—art, music, coding, philosophy, and more. Whether you’re looking to solve a problem, learn a new skill, or just have fun, [APP NAME] offers a **personalized, gamified experience** powered by generative AI.  
 
 With **two modes**—**Interactive (visual novel-style)** and **UI (modern web design)**—[APP NAME] caters to all user preferences, making creativity and learning accessible to everyone.  
 

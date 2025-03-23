@@ -298,7 +298,7 @@ export const Landing = () => {
   return (
     <div className={styles.container}>
       <div className={styles.title}>
-        The Ugly Duckling
+        Academy of Talents
       </div>
       <Canvas style={{ background: "#87CEEB" }}>
         <LandingExperience isZooming={isZooming} onAnimationComplete={handleAnimationComplete} />
@@ -316,16 +316,16 @@ export const Landing = () => {
         <div className={`${styles.menuSidebar} ${showMenu ? styles.visible : ''}`}>
           <h1 className={styles.menuTitle}>Choose Your Room</h1>
           <button className={styles.menuButton} onClick={() => handleAvatarSelect('leo')}>
-            Leo
+            Logic Leo
           </button>
           <button className={styles.menuButton} onClick={() => handleAvatarSelect('rex')}>
-            Rex
+            Rhyme Rex
           </button>
           <button className={styles.menuButton} onClick={() => handleAvatarSelect('aria')}>
-            Aria
+            Artistic Aria
           </button>
           <button className={styles.menuButton} onClick={() => handleAvatarSelect('teacher')}>
-            Teacher
+            Teacher Teacher
           </button>
         </div>
       )}

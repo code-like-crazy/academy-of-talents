@@ -1,4 +1,4 @@
-# The Ugly Ducking
+# Academy of Talents
 
 ## Project Structure
 ```
