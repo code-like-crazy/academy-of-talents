@@ -4,8 +4,52 @@ import { Canvas } from "@react-three/fiber";
 import { Teacher } from "./Teacher";
 import { MathUtils } from "three";
 import { TypingBox } from "./TypingBox";
+import { SearchBar } from "./custom/SearchBar";
+import { useState } from "react";
+import { Message } from "@/lib/types";
+import { motion } from "motion/react";
 
 export const Experience = () => {
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [sendDisabled, setSendDisabled] = useState(false);
+    
+    const handleSendMessage = async (message: string) => {
+        if (!message.trim()) return;
+        setSendDisabled(true);
+        
+        const userMessage: Message = { role: 'user', content: message };
+        setMessages((prev) => [...prev, userMessage]);
+        
+        try {
+            const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                query: message,
+                history: messages
+            })
+            });
+        
+            const responseData = await response.json();
+            console.log('responseData', responseData);
+        
+            setMessages((prev) => [...prev, { role: 'model', content: responseData }]);
+        } catch (error) {
+            console.error('Error streaming response:', error);
+            setMessages((prev) => [
+            ...prev,
+            {
+                role: 'model',
+                content: 'Sorry, there was an error processing your request. Please try again.',
+            },
+            ]);
+        } finally {
+            setSendDisabled(false);
+        }
+    };
+
     return (
         <div className="relative w-full h-full">
             <div className="absolute inset-0">
@@ -21,9 +65,18 @@ export const Experience = () => {
                     <Gltf src="/models/anime_classroom.glb" position={[-12.3, -20.0, 59.0]} rotation={[0, MathUtils.degToRad(270), 0]} />
                 </Canvas>
             </div>
-            <div className="absolute bottom-4 left-4 right-4 z-10">
-                <TypingBox />
-            </div>
+            <motion.div
+                key="chat"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease: 'easeInOut' }}
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col w-full items-center pb-8"
+            >
+                <div className="w-full max-w-2xl">
+                    <SearchBar onSend={handleSendMessage} disabled={sendDisabled} />
+                </div>
+            </motion.div>
         </div>
     )
 }
