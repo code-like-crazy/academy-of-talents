@@ -78,19 +78,74 @@ export function Avatar({
     }
   }, [animation, actions]);
 
-  // Map Rhubarb phonemes to morph targets
+  // Refined phoneme to morph target mappings for more natural lip sync
   // These mappings are based on the standard Rhubarb phoneme set
   // and the available morph targets in the avatar model
   const phonemeToMorphTargets: Record<string, Record<string, number>> = {
-    A: { mouthOpen: 0.8, mouthStretchLeft: 0.4, mouthStretchRight: 0.4 }, // Vowel sound in "bat"
-    B: { mouthClose: 0.8, mouthPucker: 0.3 }, // B, M, P sounds
-    C: { mouthOpen: 1.0, mouthStretchLeft: 0.6, mouthStretchRight: 0.6 }, // Vowel sound in "bot"
-    D: { mouthOpen: 0.7, mouthFunnel: 0.3 }, // D, T, N sounds
-    E: { mouthOpen: 0.5, mouthSmileLeft: 0.3, mouthSmileRight: 0.3 }, // Vowel sound in "bet"
-    F: { mouthOpen: 0.3, mouthLowerDownLeft: 0.5, mouthLowerDownRight: 0.5 }, // F, V sounds
-    G: { mouthOpen: 0.4, mouthPucker: 0.5 }, // Vowel sound in "boot"
-    H: { mouthOpen: 0.5, mouthDimpleLeft: 0.3, mouthDimpleRight: 0.3 }, // L, R sounds
-    X: { mouthClose: 0.5 }, // Neutral/rest position
+    A: {
+      mouthOpen: 0.6, // Reduced from 0.9
+      mouthStretchLeft: 0.4, // Reduced from 0.5
+      mouthStretchRight: 0.4, // Reduced from 0.5
+      jawOpen: 0.5, // Reduced from 0.7
+    }, // Vowel sound in "bat"
+
+    B: {
+      mouthClose: 0.7, // Reduced from 0.9
+      mouthPucker: 0.2,
+      mouthPressLeft: 0.4, // Reduced from 0.6
+      mouthPressRight: 0.4, // Reduced from 0.6
+      // Removed any morph targets that might cause the lower lip to move up
+    }, // B, M, P sounds
+
+    C: {
+      mouthOpen: 0.7, // Reduced from 1.0
+      mouthStretchLeft: 0.5, // Reduced from 0.7
+      mouthStretchRight: 0.5, // Reduced from 0.7
+      jawOpen: 0.6, // Reduced from 0.8
+    }, // Vowel sound in "bot"
+
+    D: {
+      mouthOpen: 0.4, // Reduced from 0.6
+      mouthFunnel: 0.2, // Reduced from 0.3
+      tongueOut: 0.1, // Reduced from 0.3
+      jawOpen: 0.3, // Reduced from 0.4
+    }, // D, T, N sounds
+
+    E: {
+      mouthOpen: 0.4, // Reduced from 0.5
+      mouthSmileLeft: 0.3, // Reduced from 0.4
+      mouthSmileRight: 0.3, // Reduced from 0.4
+      mouthStretchLeft: 0.2, // Reduced from 0.3
+      mouthStretchRight: 0.2, // Reduced from 0.3
+    }, // Vowel sound in "bet"
+
+    F: {
+      mouthOpen: 0.2, // Reduced from 0.3
+      // Removed mouthLowerDownLeft and mouthLowerDownRight as these might be causing the issue
+      jawForward: 0.2,
+      mouthPressLeft: 0.3, // Added as alternative to mouthLowerDown
+      mouthPressRight: 0.3, // Added as alternative to mouthLowerDown
+    }, // F, V sounds
+
+    G: {
+      mouthOpen: 0.3, // Reduced from 0.4
+      mouthPucker: 0.5, // Reduced from 0.7
+      // Removed mouthRollLower as it might be causing the issue
+      mouthRollUpper: 0.1, // Reduced from 0.2
+    }, // Vowel sound in "boot"
+
+    H: {
+      mouthOpen: 0.4, // Reduced from 0.5
+      mouthDimpleLeft: 0.3, // Reduced from 0.4
+      mouthDimpleRight: 0.3, // Reduced from 0.4
+      tongueOut: 0.1, // Reduced from 0.2
+    }, // L, R sounds
+
+    X: {
+      mouthClose: 0.6, // Reduced from 0.8
+      mouthSmileLeft: 0.05, // Reduced from 0.1
+      mouthSmileRight: 0.05, // Reduced from 0.1
+    }, // Neutral/rest position
   };
 
   // Store audio element reference
@@ -133,6 +188,7 @@ export function Avatar({
     }
   }, [currentAnimation, actions]);
 
+  // Improved lerp function for smoother transitions between morph targets
   const lerpMorphTarget = (target: string, value: number, speed = 0.5) => {
     let applied = false;
     scene.traverse((child) => {
@@ -153,10 +209,17 @@ export function Avatar({
         return;
       }
 
-      // Only log significant changes to avoid console spam
+      // Apply smoother easing for more natural transitions
       const currentValue = skinnedMesh.morphTargetInfluences[index];
-      const newValue = THREE.MathUtils.lerp(currentValue, value, speed);
 
+      // Use a cubic easing function for more natural mouth movements
+      // This creates a more organic feel to the transitions
+      const t = Math.min(1.0, speed);
+      const easedT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+      const newValue = currentValue + (value - currentValue) * easedT;
+
+      // Only log significant changes to avoid console spam
       if (Math.abs(currentValue - newValue) > 0.05) {
         console.log(
           `Applying morph target: ${target}, value: ${newValue.toFixed(2)}`,
@@ -165,20 +228,9 @@ export function Avatar({
 
       skinnedMesh.morphTargetInfluences[index] = newValue;
       applied = true;
-
-      // if (!setupMode) {
-      //   try {
-      //     // Only try to update Leva controls if they exist
-      //     if (typeof setControls === "function") {
-      //       setControls({
-      //         [target]: value,
-      //       });
-      //     }
-      //   } catch {
-      //     // Ignore errors when setting control values
-      //   }
-      // }
     });
+
+    return applied;
   };
 
   // Handle audio playback for lip sync
@@ -357,6 +409,14 @@ export function Avatar({
     console.log("Available morph targets:", morphTargets);
   }, [scene]);
 
+  // Store the previous active cue for smoother transitions
+  const prevActiveCueRef = useRef<{ phoneme: string; end: number } | null>(
+    null,
+  );
+
+  // Store the last applied morph values for smoother interpolation
+  const lastAppliedMorphsRef = useRef<Record<string, number>>({});
+
   useFrame(() => {
     // LIPSYNC
     // if (setupMode) {
@@ -379,13 +439,49 @@ export function Avatar({
         }
 
         if (mouthCues.length > 0) {
-          // Find the current mouth cue based on time
+          // Find the current mouth cue based on time with lookahead
           let activeCue = null;
+          let nextCue = null;
+
+          // Add a small offset (50ms) to the current time for better synchronization
+          // This helps compensate for any processing delays
+          const adjustedTime = currentAudioTime + 0.05;
+
           for (let i = 0; i < mouthCues.length; i++) {
             const cue = mouthCues[i];
-            if (currentAudioTime >= cue.start && currentAudioTime <= cue.end) {
+            if (adjustedTime >= cue.start && adjustedTime <= cue.end) {
               activeCue = cue;
+              // Look ahead for the next cue for better transitions
+              if (i < mouthCues.length - 1) {
+                nextCue = mouthCues[i + 1];
+              }
               break;
+            }
+          }
+
+          // If no active cue found but we have a previous cue, check if we're in a short gap
+          if (!activeCue && prevActiveCueRef.current) {
+            // Find the next cue after the previous one
+            const prevIndex = mouthCues.findIndex(
+              (cue) => cue.end === prevActiveCueRef.current?.end,
+            );
+
+            if (prevIndex >= 0 && prevIndex < mouthCues.length - 1) {
+              const nextCueAfterPrev = mouthCues[prevIndex + 1];
+
+              // If we're in a small gap (less than 100ms), interpolate between cues
+              if (
+                nextCueAfterPrev.start - prevActiveCueRef.current.end < 0.1 &&
+                currentAudioTime < nextCueAfterPrev.start
+              ) {
+                // Create a virtual cue for the gap
+                activeCue = {
+                  value: prevActiveCueRef.current.phoneme,
+                  start: prevActiveCueRef.current.end,
+                  end: nextCueAfterPrev.start,
+                  sustain: false,
+                };
+              }
             }
           }
 
@@ -406,7 +502,7 @@ export function Avatar({
             );
           }
 
-          // Apply the active cue with transition
+          // Apply the active cue with improved transitions
           if (activeCue) {
             const phoneme = activeCue.value;
             const morphTargets =
@@ -417,23 +513,63 @@ export function Avatar({
               1.0,
               Math.max(
                 0.0,
-                (currentAudioTime - activeCue.start) /
+                (adjustedTime - activeCue.start) /
                   (activeCue.end - activeCue.start),
               ),
             );
 
-            // Smoother easing function for more natural mouth movement
-            const easedProgress = 0.8 - Math.cos(cueProgress * Math.PI) / 2.5;
+            // Improved easing function for more natural mouth movement
+            // This creates a bell curve that emphasizes the middle of each phoneme
+            const easedProgress = Math.sin(cueProgress * Math.PI) * 0.8 + 0.2;
 
-            // Apply all morph targets for this phoneme
+            // Calculate blend factor for transition to next phoneme
+            let nextPhonemeBlend = 0;
+            if (nextCue && activeCue.end === nextCue.start) {
+              // If we're close to the end of the current cue, start blending with the next one
+              const transitionWindow = 0.05; // 50ms transition window
+              const timeToNextCue = activeCue.end - adjustedTime;
+
+              if (timeToNextCue < transitionWindow) {
+                nextPhonemeBlend = 1 - timeToNextCue / transitionWindow;
+              }
+            }
+
+            // Store this cue as the previous one for the next frame
+            prevActiveCueRef.current = {
+              phoneme,
+              end: activeCue.end,
+            };
+
+            // Apply all morph targets for this phoneme with improved blending
             Object.entries(morphTargets).forEach(([morphName, intensity]) => {
-              // Check if this morph target exists in the available morph targets
+              // Calculate the final intensity with easing
+              let finalIntensity = intensity * easedProgress;
+
+              // Blend with next phoneme if needed
+              if (nextPhonemeBlend > 0 && nextCue) {
+                const nextPhoneme = nextCue.value;
+                const nextMorphTargets =
+                  phonemeToMorphTargets[nextPhoneme] || phonemeToMorphTargets.X;
+
+                if (nextMorphTargets[morphName] !== undefined) {
+                  finalIntensity = THREE.MathUtils.lerp(
+                    finalIntensity,
+                    nextMorphTargets[morphName],
+                    nextPhonemeBlend,
+                  );
+                }
+              }
+
+              // Apply the morph target if it exists
               if (availableMorphTargets.includes(morphName)) {
-                const value = intensity * easedProgress;
-                lerpMorphTarget(morphName, value, 0.5);
-                appliedMorphs[morphName] = true;
+                // Use a faster transition speed for more responsive lip sync
+                const applied = lerpMorphTarget(morphName, finalIntensity, 0.7);
+                if (applied) {
+                  appliedMorphs[morphName] = true;
+                  lastAppliedMorphsRef.current[morphName] = finalIntensity;
+                }
               } else {
-                // Try alternative morph target names
+                // Try alternative morph target names with improved matching
                 const alternatives = [
                   // Common variations of morph target names
                   morphName.toLowerCase(),
@@ -441,14 +577,19 @@ export function Avatar({
                   `viseme_${morphName}`,
                   `viseme${morphName}`,
                   `mouth${morphName}`,
+                  // Additional variations for better compatibility
+                  `${morphName.charAt(0).toUpperCase()}${morphName.slice(1)}`,
+                  morphName.replace("mouth", "Mouth"),
                 ];
 
                 for (const alt of alternatives) {
                   if (availableMorphTargets.includes(alt)) {
-                    const value = intensity * easedProgress;
-                    lerpMorphTarget(alt, value, 0.5);
-                    appliedMorphs[alt] = true;
-                    break;
+                    const applied = lerpMorphTarget(alt, finalIntensity, 0.7);
+                    if (applied) {
+                      appliedMorphs[alt] = true;
+                      lastAppliedMorphsRef.current[alt] = finalIntensity;
+                      break;
+                    }
                   }
                 }
               }
@@ -460,57 +601,112 @@ export function Avatar({
               const mouthMorphs = availableMorphTargets.filter(
                 (name) =>
                   name.toLowerCase().includes("mouth") ||
-                  name.toLowerCase().includes("viseme"),
+                  name.toLowerCase().includes("viseme") ||
+                  name.toLowerCase().includes("jaw"),
               );
 
               if (mouthMorphs.length > 0) {
-                // Use the first found mouth morph with intensity based on phoneme
-                const openAmount =
-                  phoneme === "X"
-                    ? 0.1
-                    : ["A", "C", "D", "E"].includes(phoneme)
-                      ? 0.8
-                      : 0.4;
+                // Use more sophisticated fallback based on phoneme type with reduced intensities
+                const isOpenPhoneme = ["A", "C", "E"].includes(phoneme);
+                const isClosedPhoneme = ["B", "D", "F", "X"].includes(phoneme);
+                const isPuckeredPhoneme = ["G"].includes(phoneme);
 
                 mouthMorphs.forEach((morphName) => {
-                  if (morphName.toLowerCase().includes("open")) {
-                    lerpMorphTarget(morphName, openAmount * easedProgress, 0.5);
-                    appliedMorphs[morphName] = true;
+                  let value = 0;
+
+                  // Avoid any morph targets that might cause the lower lip to move up unnaturally
+                  const lowerName = morphName.toLowerCase();
+                  const isLowerLipUpMorph =
+                    lowerName.includes("lower") &&
+                    (lowerName.includes("up") || lowerName.includes("raise"));
+
+                  if (isLowerLipUpMorph) {
+                    // Skip morphs that might cause the lower lip to move up
+                    return;
+                  }
+
+                  if (lowerName.includes("open") && isOpenPhoneme) {
+                    value = 0.5 * easedProgress; // Reduced from 0.8
+                  } else if (lowerName.includes("close") && isClosedPhoneme) {
+                    value = 0.5 * easedProgress; // Reduced from 0.8
+                  } else if (
+                    lowerName.includes("pucker") &&
+                    isPuckeredPhoneme
+                  ) {
+                    value = 0.4 * easedProgress; // Reduced from 0.8
+                  } else if (lowerName.includes("jaw") && isOpenPhoneme) {
+                    value = 0.4 * easedProgress; // Reduced from 0.6
+                  }
+
+                  if (value > 0) {
+                    const applied = lerpMorphTarget(morphName, value, 0.7);
+                    if (applied) {
+                      appliedMorphs[morphName] = true;
+                      lastAppliedMorphsRef.current[morphName] = value;
+                    }
                   }
                 });
               }
             }
 
-            // Debug info
-            console.log(
-              `Lip sync: ${phoneme} at ${currentAudioTime.toFixed(2)}s, progress: ${easedProgress.toFixed(2)}, applied: ${Object.keys(appliedMorphs).join(", ")}`,
-            );
+            // Only log detailed info occasionally to reduce console spam
+            if (Math.floor(currentAudioTime * 20) % 20 === 0) {
+              console.log(
+                `Lip sync: ${phoneme} at ${adjustedTime.toFixed(2)}s, progress: ${easedProgress.toFixed(2)}, applied: ${Object.keys(appliedMorphs).join(", ")}`,
+              );
+            }
           }
         }
 
-        // Reset all mouth-related morph targets that aren't currently active
+        // Gradually reset all mouth-related morph targets that aren't currently active
+        // This creates smoother transitions between phonemes
         availableMorphTargets
           .filter(
             (name) =>
               (name.toLowerCase().includes("mouth") ||
-                name.toLowerCase().includes("viseme")) &&
+                name.toLowerCase().includes("viseme") ||
+                name.toLowerCase().includes("jaw") ||
+                name.toLowerCase().includes("tongue")) &&
               !appliedMorphs[name],
           )
           .forEach((name) => {
-            lerpMorphTarget(name, 0, 0.2); // Slightly slower fade-out for smoother transitions
+            // Use a slower fade-out for smoother transitions between phonemes
+            // This prevents abrupt mouth movements
+            if (lastAppliedMorphsRef.current[name] > 0) {
+              // Gradually reduce the value instead of immediately setting to 0
+              const newValue = lastAppliedMorphsRef.current[name] * 0.8;
+
+              if (newValue > 0.01) {
+                lerpMorphTarget(name, newValue, 0.3);
+                lastAppliedMorphsRef.current[name] = newValue;
+                appliedMorphs[name] = true;
+              } else {
+                lerpMorphTarget(name, 0, 0.3);
+                delete lastAppliedMorphsRef.current[name];
+              }
+            } else {
+              lerpMorphTarget(name, 0, 0.3);
+            }
           });
       }
     } else {
       // Reset all mouth-related morph targets when not speaking
+      // Use a slower transition for more natural movement
       availableMorphTargets
         .filter(
           (name) =>
             name.toLowerCase().includes("mouth") ||
-            name.toLowerCase().includes("viseme"),
+            name.toLowerCase().includes("viseme") ||
+            name.toLowerCase().includes("jaw") ||
+            name.toLowerCase().includes("tongue"),
         )
         .forEach((name) => {
-          lerpMorphTarget(name, 0, 0.1);
+          lerpMorphTarget(name, 0, 0.2);
+          delete lastAppliedMorphsRef.current[name];
         });
+
+      // Reset the previous cue reference
+      prevActiveCueRef.current = null;
     }
 
     if (
