@@ -1,5 +1,5 @@
 import { exec } from "child_process";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, unlink, writeFile } from "node:fs/promises";
 import path from "path";
 import { promisify } from "util";
 import { NextRequest } from "next/server";
@@ -288,41 +288,102 @@ const execAsync = promisify(exec);
 
 async function generateLipSync(audioFile: string) {
   try {
-    // Get the base filename without extension
-    const baseFilename = audioFile.replace(/\.[^/.]+$/, "");
-    const wavFile = `${baseFilename}.wav`;
-    const jsonFile = `${baseFilename}.json`;
+    // Create unique filenames based on timestamp to avoid conflicts
+    const timestamp = Date.now();
+    const baseDir = process.cwd();
+    const wavFile = path.join(baseDir, `temp_output_${timestamp}.wav`);
+    const jsonFile = path.join(baseDir, `temp_output_${timestamp}.json`);
 
     console.log(`Starting lip sync process for ${audioFile}`);
+    console.log(`WAV file: ${wavFile}`);
+    console.log(`JSON file: ${jsonFile}`);
     const startTime = Date.now();
 
     // Step 1: Convert MP3 to WAV using ffmpeg
     console.log(`Converting ${audioFile} to WAV format`);
-    await execAsync(`ffmpeg -y -i ${audioFile} ${wavFile}`);
-    console.log(`Conversion done in ${Date.now() - startTime}ms`);
+    try {
+      const ffmpegCommand = `ffmpeg -y -i "${audioFile}" "${wavFile}"`;
+      console.log(`Running command: ${ffmpegCommand}`);
+      const { stdout, stderr } = await execAsync(ffmpegCommand);
+      if (stderr) console.log("FFmpeg stderr:", stderr);
+      console.log(`Conversion done in ${Date.now() - startTime}ms`);
+    } catch (error: any) {
+      console.error("FFmpeg conversion error:", error);
+      throw new Error(
+        `Failed to convert audio to WAV format: ${error.message || "Unknown error"}`,
+      );
+    }
 
     // Step 2: Run Rhubarb on the WAV file to generate lip sync data
     console.log(`Generating lip sync data with Rhubarb`);
-    const rhubarbPath = path.join(
-      process.cwd(),
-      "frontend",
-      "rhubarb",
-      "rhubarb",
-    );
-    await execAsync(
-      `${rhubarbPath} -f json -o ${jsonFile} ${wavFile} -r phonetic`,
-    );
-    console.log(`Lip sync done in ${Date.now() - startTime}ms`);
+    const rhubarbPath = path.resolve(baseDir, "frontend", "rhubarb", "rhubarb");
 
-    // Step 3: Read the generated JSON file
-    const lipSyncData = JSON.parse(await readFile(jsonFile, "utf8"));
+    // Make sure rhubarb is executable
+    try {
+      await execAsync(`chmod +x "${rhubarbPath}"`);
+    } catch (error) {
+      console.warn("Failed to set executable permission on rhubarb:", error);
+    }
+
+    try {
+      const rhubarbCommand = `"${rhubarbPath}" -f json -o "${jsonFile}" "${wavFile}" -r phonetic`;
+      console.log(`Running command: ${rhubarbCommand}`);
+      const { stdout, stderr } = await execAsync(rhubarbCommand);
+      if (stderr) console.log("Rhubarb stderr:", stderr);
+      console.log(`Lip sync data generated in ${Date.now() - startTime}ms`);
+    } catch (error: any) {
+      console.error("Rhubarb error:", error);
+      throw new Error(
+        `Failed to generate lip sync data: ${error.message || "Unknown error"}`,
+      );
+    }
+
+    // Step 3: Read and validate the generated JSON file
+    let lipSyncData;
+    try {
+      const jsonContent = await readFile(jsonFile, "utf8");
+      console.log(`JSON file content length: ${jsonContent.length}`);
+      lipSyncData = JSON.parse(jsonContent);
+
+      console.log(
+        `Parsed lip sync data with ${lipSyncData.mouthCues?.length || 0} mouth cues`,
+      );
+
+      if (
+        !lipSyncData ||
+        !lipSyncData.mouthCues ||
+        !Array.isArray(lipSyncData.mouthCues)
+      ) {
+        throw new Error("Invalid lip sync data format");
+      }
+    } catch (error: any) {
+      console.error("Error reading or parsing lip sync JSON:", error);
+      throw new Error(
+        `Failed to read or parse lip sync data: ${error.message || "Unknown error"}`,
+      );
+    }
+
+    // Cleanup temporary files
+    try {
+      await unlink(wavFile);
+      await unlink(jsonFile);
+      console.log("Temporary files cleaned up");
+    } catch (error) {
+      console.warn("Failed to cleanup temporary files:", error);
+    }
 
     return lipSyncData;
   } catch (error) {
     console.error("Error generating lip sync data:", error);
 
     // Return a fallback empty lip sync data structure if the process fails
-    return { mouthCues: [] };
+    return {
+      metadata: {
+        soundFile: audioFile,
+        duration: 0,
+      },
+      mouthCues: [],
+    };
   }
 }
 

@@ -3,7 +3,17 @@ import { useCallback, useEffect, useState } from "react";
 export interface ChatMessage {
   text: string;
   audio: string; // base64 encoded audio
-  lipsync: any; // Rhubarb lip sync data
+  lipsync: {
+    metadata?: {
+      soundFile: string;
+      duration: number;
+    };
+    mouthCues: Array<{
+      start: number;
+      end: number;
+      value: string; // Phoneme value (A, B, C, D, E, F, G, H, X)
+    }>;
+  };
   facialExpression?: string;
   animation?: string;
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { Home, Info, Phone, Users } from "lucide-react";
 import { motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
@@ -23,10 +23,16 @@ const NavItem = ({ href, label, icon, isActive }: NavItemProps) => {
             ? "bg-primary/10 text-primary"
             : "hover:bg-primary/5 text-foreground/70 hover:text-foreground",
         )}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{
+          scale: 1.05,
+          transition: { duration: 0.2 },
+        }}
+        whileTap={{
+          scale: 0.95,
+          transition: { duration: 0.1 },
+        }}
       >
-        <span className="text-lg">{icon}</span>
+        <span className="flex items-center justify-center text-lg">{icon}</span>
         <span className="font-medium">{label}</span>
         {isActive && (
           <motion.div
@@ -49,16 +55,28 @@ interface NavbarProps {
 
 export function Navbar({ className, currentPath }: NavbarProps) {
   const navItems = [
-    { href: "/ui", label: "Home", icon: "🏠" },
-    { href: "/ui/talents", label: "Talents", icon: "🎭" },
-    { href: "/ui/about", label: "About", icon: "ℹ️" },
-    { href: "/ui/contact", label: "Contact", icon: "📞" },
+    { href: "/ui", label: "Home", icon: <Home size={18} strokeWidth={2.5} /> },
+    {
+      href: "/ui/talents",
+      label: "Talents",
+      icon: <Users size={18} strokeWidth={2.5} />,
+    },
+    {
+      href: "/ui/about",
+      label: "About",
+      icon: <Info size={18} strokeWidth={2.5} />,
+    },
+    {
+      href: "/ui/contact",
+      label: "Contact",
+      icon: <Phone size={18} strokeWidth={2.5} />,
+    },
   ];
 
   return (
     <motion.nav
       className={cn(
-        "bg-card/80 flex items-center gap-2 rounded-2xl p-1 shadow-md backdrop-blur-sm",
+        "bg-card/80 flex items-center gap-1 rounded-2xl p-1.5 shadow-md backdrop-blur-sm",
         className,
       )}
       initial={{ opacity: 0, y: -10 }}

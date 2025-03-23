@@ -70,16 +70,18 @@ export function Avatar({
   }, [expression]);
 
   // Map Rhubarb phonemes to viseme morphs
+  // These mappings are based on the standard Rhubarb phoneme set
+  // and the available visemes in the avatar model
   const phonemeToViseme: Record<string, string> = {
-    A: "viseme_PP", // Vowel sound in "bat"
-    B: "viseme_kk", // B, M, P sounds
-    C: "viseme_I", // Vowel sound in "bot"
-    D: "viseme_AA", // D, T, N sounds
-    E: "viseme_O", // Vowel sound in "bet"
-    F: "viseme_U", // F, V sounds
-    G: "viseme_FF", // Vowel sound in "boot"
-    H: "viseme_TH", // L, R sounds
-    X: "viseme_PP", // Neutral/rest position
+    A: "viseme_PP", // Vowel sound in "bat" - Closed lips
+    B: "viseme_kk", // B, M, P sounds - Slightly open mouth
+    C: "viseme_I", // Vowel sound in "bot" - Open mouth
+    D: "viseme_AA", // D, T, N sounds - Wide open mouth
+    E: "viseme_O", // Vowel sound in "bet" - Rounded lips
+    F: "viseme_U", // F, V sounds - Teeth on lower lip
+    G: "viseme_FF", // Vowel sound in "boot" - Rounded small opening
+    H: "viseme_TH", // L, R sounds - Tongue visible
+    X: "viseme_PP", // Neutral/rest position - Closed lips
   };
 
   // Store audio element reference
@@ -166,67 +168,112 @@ export function Avatar({
   useEffect(() => {
     if (!currentMessage?.audio) return;
 
-    // Create audio element if it doesn't exist
+    // Create or reset audio element
     if (!audioRef.current) {
       audioRef.current = new Audio();
     }
 
-    // Set audio source
-    audioRef.current.src = `data:audio/mp3;base64,${currentMessage.audio}`;
+    const audio = audioRef.current;
 
-    // Set up onended callback
-    const handleAudioEnd = () => {
-      // Call onMessagePlayed directly from the Scene component
-      if (currentMessage) {
-        // Try to find the onMessagePlayed function in the group hierarchy
-        // First check our own group's userData
-        if (group.current?.userData?.onMessagePlayed) {
-          group.current.userData.onMessagePlayed();
-        }
-        // Then check our parent's userData
-        else if (group.current?.parent?.userData?.onMessagePlayed) {
-          group.current.parent.userData.onMessagePlayed();
-        }
-        // Then check the parent's parent (the scene root)
-        else if (group.current?.parent?.parent?.userData?.onMessagePlayed) {
-          group.current.parent.parent.userData.onMessagePlayed();
-        }
-        // If all else fails, try to find it in the scene
-        else {
-          // Find the root scene
-          let root: THREE.Object3D | null = group.current;
-          while (root?.parent) {
-            root = root.parent;
-          }
+    // Configure audio settings for better lip sync
+    audio.preload = "auto";
+    audio.playbackRate = 1.0;
 
-          // Try to find any object with the callback
-          let found = false;
-          root?.traverse((obj) => {
-            if (!found && obj.userData?.onMessagePlayed) {
-              obj.userData.onMessagePlayed();
-              found = true;
-            }
-          });
-        }
+    // Log lip sync data for debugging
+    if (
+      process.env.NODE_ENV === "development" &&
+      currentMessage?.lipsync?.mouthCues
+    ) {
+      console.log(
+        `Lip sync data loaded with ${currentMessage.lipsync.mouthCues.length} mouth cues`,
+      );
+      if (currentMessage.lipsync.metadata) {
+        console.log(
+          `Audio duration from metadata: ${currentMessage.lipsync.metadata.duration}s`,
+        );
+      }
+    }
+
+    // Set up event handlers
+    const handleCanPlay = () => {
+      if (isSpeaking && audio.paused) {
+        console.log(`Starting audio playback, duration: ${audio.duration}s`);
+        audio.play().catch((err) => {
+          console.error("Error playing audio:", err);
+        });
       }
     };
 
-    audioRef.current.onended = handleAudioEnd;
+    const handleAudioEnd = () => {
+      console.log("Audio playback ended");
 
-    // Play audio when component mounts or message changes
-    if (isSpeaking) {
-      audioRef.current.play().catch((err) => {
-        console.error("Error playing audio:", err);
-      });
+      // Find and call onMessagePlayed callback
+      const findAndCallCallback = (obj: THREE.Object3D | null) => {
+        if (!obj) return false;
+
+        if (obj.userData?.onMessagePlayed) {
+          obj.userData.onMessagePlayed();
+          return true;
+        }
+
+        // Check parent
+        if (obj.parent && findAndCallCallback(obj.parent)) {
+          return true;
+        }
+
+        // Check children
+        let found = false;
+        obj.traverse((child) => {
+          if (!found && child.userData?.onMessagePlayed) {
+            child.userData.onMessagePlayed();
+            found = true;
+          }
+        });
+
+        return found;
+      };
+
+      if (currentMessage) {
+        findAndCallCallback(group.current);
+      }
+    };
+
+    // Set up audio element
+    audio.src = `data:audio/mp3;base64,${currentMessage.audio}`;
+    audio.oncanplay = handleCanPlay;
+    audio.onended = handleAudioEnd;
+
+    // Add timeupdate event for debugging
+    if (process.env.NODE_ENV === "development") {
+      const handleTimeUpdate = () => {
+        // Log every second for debugging
+        if (
+          Math.floor(audio.currentTime) !== Math.floor(audio.currentTime - 0.1)
+        ) {
+          console.log(
+            `Audio time: ${audio.currentTime.toFixed(2)}s / ${audio.duration.toFixed(2)}s`,
+          );
+        }
+      };
+      audio.ontimeupdate = handleTimeUpdate;
     }
+
+    // Handle errors
+    audio.onerror = (e) => {
+      console.error("Audio playback error:", e);
+      handleAudioEnd(); // Ensure message completion even if audio fails
+    };
 
     // Cleanup function
     return () => {
-      if (audioRef.current) {
-        audioRef.current.onended = null;
-        audioRef.current.pause();
-        audioRef.current.src = "";
+      audio.oncanplay = null;
+      audio.onended = null;
+      audio.onerror = null;
+      if (process.env.NODE_ENV === "development") {
+        audio.ontimeupdate = null;
       }
+      audio.pause();
+      audio.src = "";
     };
   }, [currentMessage, isSpeaking]);
 
@@ -239,30 +286,65 @@ export function Avatar({
     // Handle Rhubarb lip sync data if available
     const appliedMorphTargets: string[] = [];
     if (currentMessage?.lipsync?.mouthCues && isSpeaking && audioRef.current) {
-      const currentAudioTime = audioRef.current.currentTime;
-      const mouthCues = currentMessage.lipsync.mouthCues;
+      if (!audioRef.current.paused && !isNaN(audioRef.current.duration)) {
+        const currentAudioTime = audioRef.current.currentTime;
+        const mouthCues = currentMessage.lipsync.mouthCues;
 
-      if (mouthCues.length > 0) {
-        // Find the current mouth cue based on time
-        for (let i = 0; i < mouthCues.length; i++) {
-          const cue = mouthCues[i];
-          if (currentAudioTime >= cue.start && currentAudioTime <= cue.end) {
-            // Get the viseme for this phoneme
-            const viseme = phonemeToViseme[cue.value] || phonemeToViseme.X;
+        if (mouthCues.length > 0) {
+          // Find the current mouth cue based on time
+          let activeCue = null;
+          for (let i = 0; i < mouthCues.length; i++) {
+            const cue = mouthCues[i];
+            if (currentAudioTime >= cue.start && currentAudioTime <= cue.end) {
+              activeCue = cue;
+              break;
+            }
+          }
+
+          // Apply the active cue with transition
+          if (activeCue) {
+            const viseme =
+              phonemeToViseme[activeCue.value] || phonemeToViseme.X;
             appliedMorphTargets.push(viseme);
-            lerpMorphTarget(viseme, 1, 0.2);
-            break;
+
+            // Calculate transition progress with improved easing
+            const cueProgress = Math.min(
+              1.0,
+              Math.max(
+                0.0,
+                (currentAudioTime - activeCue.start) /
+                  (activeCue.end - activeCue.start),
+              ),
+            );
+
+            // Smoother easing function for more natural mouth movement
+            const easedProgress = 0.8 - Math.cos(cueProgress * Math.PI) / 2.5;
+
+            // Apply viseme with dynamic interpolation - higher intensity for better visibility
+            lerpMorphTarget(viseme, easedProgress, 0.5);
+
+            // Debug info in development mode
+            if (process.env.NODE_ENV === "development") {
+              console.log(
+                `Lip sync: ${activeCue.value} (${viseme}) at ${currentAudioTime.toFixed(2)}s, progress: ${easedProgress.toFixed(2)}`,
+              );
+            }
           }
         }
-      }
-    }
 
-    // Reset all visemes that aren't currently active
-    Object.values(phonemeToViseme).forEach((viseme) => {
-      if (!appliedMorphTargets.includes(viseme)) {
-        lerpMorphTarget(viseme, 0, 0.1);
+        // Reset all visemes that aren't currently active with smoother transition
+        Object.values(phonemeToViseme).forEach((viseme) => {
+          if (!appliedMorphTargets.includes(viseme)) {
+            lerpMorphTarget(viseme, 0, 0.2); // Slightly slower fade-out for smoother transitions
+          }
+        });
       }
-    });
+    } else {
+      // Reset all visemes when not speaking
+      Object.values(phonemeToViseme).forEach((viseme) => {
+        lerpMorphTarget(viseme, 0, 0.1);
+      });
+    }
 
     if (
       !nodes.EyeLeft.morphTargetDictionary ||
