@@ -1,0 +1,71 @@
+export const teacherFacialExpressions: Record<
+  string,
+  Record<string, number>
+> = {
+  default: {},
+  smile: {
+    browInnerUp: 0.2,
+    eyeSquintLeft: 0.6,
+    eyeSquintRight: 0.6,
+    noseSneerLeft: 0.3,
+    noseSneerRight: 0.3,
+    mouthPressLeft: 0.8,
+    mouthPressRight: 0.6,
+  },
+  funnyFace: {
+    noseSneerLeft: 1,
+    noseSneerRight: 1,
+    eyeWideLeft: 0.5,
+    eyeWideRight: 0.5,
+    eyeLookUpLeft: 1,
+    eyeLookUpRight: 1,
+    cheekPuff: 1,
+    mouthStretchLeft: 1,
+    mouthStretchRight: 1,
+    eyeBlinkLeft: 1,
+    eyeBlinkRight: 1,
+  },
+  sad: {
+    mouthFrownLeft: 0.6,
+    mouthFrownRight: 0.6,
+    mouthShrugLower: 0.8,
+    browInnerUp: 0.4,
+    eyeSquintLeft: 0.7,
+    eyeSquintRight: 0.7,
+    eyeLookDownLeft: 0.5,
+    eyeLookDownRight: 0.5,
+    jawForward: 1,
+    jawLeft: 0.5,
+  },
+  surprised: {
+    eyeWideLeft: 0.5,
+    eyeWideRight: 0.5,
+    jawOpen: 0.5,
+    browInnerUp: 0.5,
+  },
+  angry: {
+    browDownLeft: 0.6,
+    browDownRight: 0.6,
+    eyeSquintLeft: 1,
+    eyeSquintRight: 1,
+    jawForward: 1,
+    jawLeft: 1,
+    mouthShrugLower: 1,
+    noseSneerLeft: 1,
+    noseSneerRight: 0.4,
+    eyeLookDownLeft: 0.2,
+    eyeLookDownRight: 0.2,
+    cheekSquintLeft: 1,
+    cheekSquintRight: 1,
+    mouthClose: 0.2,
+    mouthFunnel: 0.6,
+    mouthDimpleRight: 1,
+    mouthUpperUpLeft: 1,
+  },
+};
+
+export const teacherAnimationOptions = ["Idle", "Angry", "Talking", "Happy"];
+
+export const TEACHER_MODEL_PATH = "/models/avatars/teacher.glb";
+export const TEACHER_ANIMATIONS_PATH =
+  "/models/animations/teacher-animations.glb";
