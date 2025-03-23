@@ -246,7 +246,7 @@ export function Avatar({
       const delay =
         typeof window !== "undefined"
           ? THREE.MathUtils.randInt(1000, 5000)
-          : 3000;
+          : 3000; // Default delay for initial server render
 
       blinkTimeout = setTimeout(() => {
         setBlink(true);

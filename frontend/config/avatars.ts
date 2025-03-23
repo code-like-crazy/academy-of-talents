@@ -49,7 +49,7 @@ export const avatars: Avatar[] = [
   },
   {
     id: "aria",
-    name: "Aria",
+    name: "Artistic Aria",
     modelPath: ARIA_MODEL_PATH,
     animationsPath: ARIA_ANIMATIONS_PATH,
     blinkSettings: DEFAULT_BLINK_SETTINGS,
@@ -57,7 +57,7 @@ export const avatars: Avatar[] = [
   },
   {
     id: "rex",
-    name: "Rex",
+    name: "Rhythm Rex",
     modelPath: REX_MODEL_PATH,
     animationsPath: REX_ANIMATIONS_PATH,
     blinkSettings: DEFAULT_BLINK_SETTINGS,
@@ -65,7 +65,7 @@ export const avatars: Avatar[] = [
   },
   {
     id: "leo",
-    name: "Leo",
+    name: "Logic Leo",
     modelPath: LEO_MODEL_PATH,
     animationsPath: LEO_ANIMATIONS_PATH,
     blinkSettings: DEFAULT_BLINK_SETTINGS,

@@ -27,15 +27,20 @@ export function Scene({
   isSpeaking = false,
 }: SceneProps) {
   const [isChatVisible, setIsChatVisible] = useState(true);
+  const [avatarZoom, setAvatarZoom] = useState<
+    [x: number, y: number, z: number]
+  >([0, -0.45, 5]);
+
   // Function to handle zoom button click
-  const handleZoom = (zoomIn: boolean) => {
-    // Use type assertion to avoid TypeScript error
-    const canvas = document.querySelector("canvas");
-    const controls = canvas ? (canvas as any)["__r3f"]?.["controls"] : null;
-    if (controls) {
-      const targetDistance = zoomIn ? 1.5 : 5;
-      controls.dollyTo(targetDistance, true);
-    }
+  const handleZoom = () => {
+    // zoomed in: [0, -0.35, 6]
+    // zoomed out: [0, -0.45, 5]
+
+    const zoomedIn = avatarZoom[2] === 5; // Check if currently zoomed out (at z=5)
+    const newZoom: [x: number, y: number, z: number] = zoomedIn
+      ? [0, -0.35, 6] // If currently at 5, zoom in to 6
+      : [0, -0.45, 5]; // If currently at 6, zoom out to 5
+    setAvatarZoom(newZoom);
   };
 
   // Function to handle settings changes
@@ -63,12 +68,13 @@ export function Scene({
         expression={expression}
         text={text}
         isSpeaking={isSpeaking}
+        avatarZoom={avatarZoom}
       />
 
       {/* UI Overlay */}
       <div className="absolute inset-0">
         <AvatarNameDisplay type={type} />
-        <ZoomButton onZoom={handleZoom} />
+        <ZoomButton onZoom={handleZoom} isZoomedIn={avatarZoom[2] === 6} />
         <SettingsDialog onSettingChange={handleSettingChange} />
         <ExitButton />
         <ChatBox

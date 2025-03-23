@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { animated, useSpring } from "@react-spring/three";
 import {
   CameraControls,
   ContactShadows,
@@ -10,15 +11,49 @@ import {
 } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 
+import { AvailableAvatars } from "@/config/avatars";
 import { Avatar } from "@/components/avatar";
 
 import { SceneCanvasProps } from "./types";
+
+type AnimatedAvatarProps = {
+  position: [number, number, number];
+  type: AvailableAvatars;
+  expression?: string;
+  text?: string;
+  isSpeaking?: boolean;
+};
+
+function AnimatedAvatar({
+  position,
+  type,
+  expression,
+  text,
+  isSpeaking,
+}: AnimatedAvatarProps) {
+  const { position: springPosition } = useSpring({
+    position,
+    config: { mass: 1, tension: 120, friction: 14 },
+  });
+
+  return (
+    <animated.group position={springPosition}>
+      <Avatar
+        type={type}
+        expression={expression}
+        text={text}
+        isSpeaking={isSpeaking}
+      />
+    </animated.group>
+  );
+}
 
 export function SceneCanvas({
   type,
   expression = "default",
   text = "",
   isSpeaking = false,
+  avatarZoom,
 }: SceneCanvasProps) {
   return (
     <Canvas
@@ -95,8 +130,8 @@ export function SceneCanvas({
           castShadow
           shadow-mapSize={[512, 512]}
         />
-        <Avatar
-          position={[0, -0.45, 5]}
+        <AnimatedAvatar
+          position={avatarZoom}
           type={type}
           expression={expression}
           text={text}

@@ -59,3 +59,5 @@ frontend/public/build/*
 frontend/public/static/*
 frontend/public/images/*
 frontend/public/fonts/*
+
+frontend/rhubarb/*

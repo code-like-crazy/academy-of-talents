@@ -1,19 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 import { ZoomButtonProps } from "./types";
 
-export function ZoomButton({ onZoom }: ZoomButtonProps) {
-  const [isZoomedIn, setIsZoomedIn] = useState(false);
-
+export function ZoomButton({ onZoom, isZoomedIn }: ZoomButtonProps) {
   const handleZoomToggle = () => {
-    const newZoomState = !isZoomedIn;
-    setIsZoomedIn(newZoomState);
-    onZoom(newZoomState);
+    onZoom();
   };
 
   return (

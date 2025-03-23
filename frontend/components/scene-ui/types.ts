@@ -11,6 +11,7 @@ export type SceneCanvasProps = {
   expression?: string;
   text?: string;
   isSpeaking?: boolean;
+  avatarZoom: [x: number, y: number, z: number];
 };
 
 // Props for the AvatarNameDisplay component
@@ -20,7 +21,8 @@ export type AvatarNameDisplayProps = {
 
 // Props for the ZoomButton component
 export type ZoomButtonProps = {
-  onZoom: (zoomIn: boolean) => void;
+  onZoom: () => void;
+  isZoomedIn: boolean;
 } & SceneComponentProps;
 
 // Props for the SettingsDialog component
