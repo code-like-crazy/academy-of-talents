@@ -41,6 +41,7 @@ declare global {
   }
 }
 
+
 // Component Props Types
 export interface SearchBarProps {
   onSend: (message: string) => void;

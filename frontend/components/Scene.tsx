@@ -16,9 +16,12 @@ import { Avatar } from "./avatar";
 
 type SceneProps = {
   type: AvailableAvatars;
+  expression?: string;
+  text?: string;
+  isSpeaking?: boolean;
 };
 
-export function Scene({ type }: SceneProps) {
+export function Scene({ type, expression = "default", text = "", isSpeaking = false }: SceneProps) {
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <Canvas
@@ -95,7 +98,13 @@ export function Scene({ type }: SceneProps) {
             castShadow
             shadow-mapSize={[512, 512]}
           />
-          <Avatar position={[0, -0.3, 5]} type={type} />
+          <Avatar 
+            position={[0, -0.3, 5]} 
+            type={type} 
+            expression={expression}
+            text={text}
+            isSpeaking={isSpeaking}
+          />
           <ContactShadows opacity={0.7} />
         </Suspense>
       </Canvas>

@@ -8,20 +8,28 @@ import * as THREE from "three";
 import { GLTF } from "three-stdlib";
 
 import { AvailableAvatars } from "@/config/avatars";
+import { rhubarbPhonemes } from "@/config/avatar/rhubarb";
 
 import { useAvatar } from "./hooks/useAvatar";
+import { useRhubarb } from "./hooks/useRhubarb";
 import { AvatarGLTFResult } from "./types";
 
 let setupMode = false;
 
 type Props = {
   type: AvailableAvatars;
-};
+  expression?: string;
+  text?: string;
+  isSpeaking?: boolean;
+} & JSX.IntrinsicElements["group"];
 
 export function Avatar({
   type,
+  expression = "default",
+  text = "",
+  isSpeaking = false,
   ...props
-}: JSX.IntrinsicElements["group"] & Props) {
+}: Props) {
   const group = useRef<THREE.Group>(null);
   const sceneRef = useRef<THREE.Object3D | null>(null);
   const {
@@ -51,7 +59,26 @@ export function Avatar({
   const [blink, setBlink] = useState(false);
   const [winkLeft, setWinkLeft] = useState(false);
   const [winkRight, setWinkRight] = useState(false);
-  const [facialExpression, setFacialExpression] = useState("default");
+  const [facialExpression, setFacialExpression] = useState(expression);
+
+  // Update facial expression when prop changes
+  useEffect(() => {
+    setFacialExpression(expression);
+  }, [expression]);
+
+  // Handle Rhubarb lip sync
+  const handlePhonemeChange = (phoneme: keyof typeof rhubarbPhonemes) => {
+    const phonemeData = rhubarbPhonemes[phoneme];
+    Object.entries(phonemeData).forEach(([target, value]) => {
+      lerpMorphTarget(target, value, 0.1);
+    });
+  };
+
+  const { currentPhoneme } = useRhubarb({
+    text,
+    onPhonemeChange: handlePhonemeChange,
+    isPlaying: isSpeaking,
+  });
 
   useEffect(() => {
     if (!actions || !actions[animation]) return;

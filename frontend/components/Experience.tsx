@@ -46,7 +46,8 @@ export const Experience = () => {
             },
             body: JSON.stringify({
                 query: message,
-                history: messages
+                history: messages,
+                owner: "Artistic Aria"
             })
             });
         
@@ -139,7 +140,7 @@ export const Experience = () => {
                             </div>
                         ))}
                     </div>
-                    <SearchBar onSend={handleSendMessage} disabled={sendDisabled} />
+                    <SearchBar onSend={handleSendMessage} disabled={sendDisabled}/>
                 </div>
             </motion.div>
             <audio ref={audioRef} className="hidden" />
