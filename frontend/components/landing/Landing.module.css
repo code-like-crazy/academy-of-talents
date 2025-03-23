@@ -14,14 +14,14 @@
   font-size: 64px;
   font-weight: bold;
   font-family: "Comic Sans MS", cursive;
-  color: #4CAF50;
+  color: #4caf50;
   text-align: center;
-  text-shadow: 
+  text-shadow:
     2px 2px 0 #fff,
     -2px -2px 0 #fff,
     2px -2px 0 #fff,
     -2px 2px 0 #fff,
-    4px 4px 0 rgba(0,0,0,0.1);
+    4px 4px 0 rgba(0, 0, 0, 0.1);
   letter-spacing: 1px;
   animation: bounce 2s infinite;
 }
@@ -32,84 +32,230 @@
   left: 50%;
   transform: translateX(-50%);
   padding: 15px 40px;
-  font-size: 18px;
-  background-color: #4CAF50;
+  font-size: 20px;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 25px;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   z-index: 1000;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
 .startButton:hover {
   background-color: #45a049;
   transform: translateX(-50%) scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
 }
 
 .startButton:not(:hover) {
   transform: translateX(-50%) scale(1);
 }
 
-.menuSidebar {
+/* New menu container styles */
+.menuContainer {
   position: fixed;
-  left: 120px;
-  top: 50%;
-  transform: translate(-100%, -50%);
-  width: 350px;
-  background: white;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  z-index: 2000;
-  transition: transform 0.5s ease;
-  padding: 35px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  border-radius: 20px;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.5s ease,
+    visibility 0.5s ease;
 }
 
-.menuSidebar.visible {
-  transform: translate(0, -50%);
+.menuContainer.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.menuCard {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 40px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: scale(0.9);
+  transition: transform 0.5s ease;
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .menuTitle {
-  font-size: 32px;
-  color: #4CAF50;
+  font-size: 36px;
+  color: #4caf50;
   margin-bottom: 30px;
   font-family: "Comic Sans MS", cursive;
   text-align: center;
-  text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 4px 4px 0 rgba(0,0,0,0.1);
+  text-shadow:
+    2px 2px 0 #fff,
+    -2px -2px 0 #fff,
+    2px -2px 0 #fff,
+    -2px 2px 0 #fff,
+    4px 4px 0 rgba(0, 0, 0, 0.1);
   letter-spacing: 1px;
-  animation: bounce 2s infinite;
-  transform: translateX(-50%);
-  left: 50%;
+}
+
+.menuSection {
+  margin-bottom: 30px;
+}
+
+.sectionTitle {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 15px;
+  font-family: "Comic Sans MS", cursive;
   position: relative;
+  padding-bottom: 10px;
+}
+
+.sectionTitle::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background-color: #4caf50;
+  border-radius: 3px;
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.avatarsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.navLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.optionCard {
+  background-color: #f9f9f9;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  height: 100%;
+}
+
+.optionCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  border-color: #4caf50;
+}
+
+.optionTitle {
+  font-size: 22px;
+  color: #4caf50;
+  margin-bottom: 10px;
+  font-family: "Comic Sans MS", cursive;
+}
+
+.optionDescription {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.avatarCard {
+  background-color: #f0f8ff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  height: 100%;
+}
+
+.avatarCard:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  border-color: #4caf50;
+}
+
+.avatarName {
+  font-size: 20px;
+  color: #4caf50;
+  margin-bottom: 8px;
+  font-family: "Comic Sans MS", cursive;
+}
+
+.avatarDescription {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.aboutLinkContainer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.aboutLink {
+  display: inline-block;
+  color: #4caf50;
+  font-size: 16px;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.aboutLink:hover {
+  background-color: rgba(76, 175, 80, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Legacy styles for backward compatibility */
+.menuSidebar {
+  display: none;
 }
 
 .menuButton {
-  padding: 20px 25px;
-  font-size: 22px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 15px;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  text-align: left;
-  width: 100%;
-  font-family: "Comic Sans MS", cursive;
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
-}
-
-.menuButton:hover {
-  background-color: #45a049;
-  transform: translateX(5px) scale(1.02);
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  display: none;
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-5px); }
-} 
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+}

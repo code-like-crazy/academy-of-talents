@@ -23,6 +23,7 @@ type Props = {
   text?: string;
   isSpeaking?: boolean;
   currentMessage?: ChatMessage | null;
+  animation?: string; // Add animation prop
 } & JSX.IntrinsicElements["group"];
 
 export function Avatar({
@@ -31,6 +32,7 @@ export function Avatar({
   text = "",
   isSpeaking = false,
   currentMessage,
+  animation,
   ...props
 }: Props): JSX.Element {
   const group = useRef<THREE.Group>(null);
@@ -55,7 +57,7 @@ export function Avatar({
   }, [scene]);
 
   const { actions } = useAnimations(animations, group);
-  const [animation, setAnimation] = useState(
+  const [currentAnimation, setCurrentAnimation] = useState(
     animations.find((a) => a.name === "Idle") ? "Idle" : animations[0].name,
   );
 
@@ -68,6 +70,13 @@ export function Avatar({
   useEffect(() => {
     setFacialExpression(expression);
   }, [expression]);
+
+  // Update animation when animation prop changes
+  useEffect(() => {
+    if (animation && actions && actions[animation]) {
+      setCurrentAnimation(animation);
+    }
+  }, [animation, actions]);
 
   // Map Rhubarb phonemes to viseme morphs
   // These mappings are based on the standard Rhubarb phoneme set
@@ -94,17 +103,17 @@ export function Avatar({
     // If we have a current message with an animation specified, use that
     if (currentMessage?.animation && actions[currentMessage.animation]) {
       const newAnimation = currentMessage.animation;
-      setAnimation(newAnimation);
+      setCurrentAnimation(newAnimation);
       setFacialExpression(currentMessage.facialExpression || "default");
     } else if (!currentMessage && actions["Idle"]) {
       // Reset to Idle when no message is playing
-      setAnimation("Idle");
+      setCurrentAnimation("Idle");
     }
   }, [currentMessage, actions]);
 
   // Play the current animation
   useEffect(() => {
-    if (!actions || !actions[animation]) return;
+    if (!actions || !currentAnimation || !actions[currentAnimation]) return;
 
     // Stop all currently running animations
     Object.values(actions).forEach((action) => {
@@ -114,7 +123,7 @@ export function Avatar({
     });
 
     // Play the new animation
-    const action = actions[animation];
+    const action = actions[currentAnimation];
     if (action) {
       action.reset().fadeIn(0.5).play();
 
@@ -122,7 +131,7 @@ export function Avatar({
         action.fadeOut(0.5);
       };
     }
-  }, [animation, actions]);
+  }, [currentAnimation, actions]);
 
   const lerpMorphTarget = (target: string, value: number, speed = 0.5) => {
     scene.traverse((child) => {
@@ -149,18 +158,18 @@ export function Avatar({
         speed,
       );
 
-      if (!setupMode) {
-        try {
-          // Only try to update Leva controls if they exist
-          if (typeof setControls === "function") {
-            setControls({
-              [target]: value,
-            });
-          }
-        } catch {
-          // Ignore errors when setting control values
-        }
-      }
+      // if (!setupMode) {
+      //   try {
+      //     // Only try to update Leva controls if they exist
+      //     if (typeof setControls === "function") {
+      //       setControls({
+      //         [target]: value,
+      //       });
+      //     }
+      //   } catch {
+      //     // Ignore errors when setting control values
+      //   }
+      // }
     });
   };
 
@@ -279,9 +288,9 @@ export function Avatar({
 
   useFrame(() => {
     // LIPSYNC
-    if (setupMode) {
-      return;
-    }
+    // if (setupMode) {
+    //   return;
+    // }
 
     // Handle Rhubarb lip sync data if available
     const appliedMorphTargets: string[] = [];
@@ -413,9 +422,9 @@ export function Avatar({
   //     setTimeout(() => setWinkRight(false), 300);
   //   }),
   //   animation: {
-  //     value: animation,
+  //     value: currentAnimation,
   //     options: animations.map((a) => a.name),
-  //     onChange: (value) => setAnimation(value),
+  //     onChange: (value) => setCurrentAnimation(value),
   //   },
   //   facialExpression: {
   //     value: facialExpression,

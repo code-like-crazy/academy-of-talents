@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Home, LogOut, Settings, User } from "lucide-react";
+import { Home, LogOut, Settings } from "lucide-react";
 
 import { AvailableAvatars } from "@/config/avatars";
 import { Button } from "@/components/ui/button";

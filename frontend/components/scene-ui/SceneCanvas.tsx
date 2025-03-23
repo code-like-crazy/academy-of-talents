@@ -25,6 +25,7 @@ type AnimatedAvatarProps = {
   text?: string;
   isSpeaking?: boolean;
   currentMessage?: ChatMessage | null;
+  animation?: string;
 };
 
 function AnimatedAvatar({
@@ -34,6 +35,7 @@ function AnimatedAvatar({
   text,
   isSpeaking,
   currentMessage,
+  animation,
 }: AnimatedAvatarProps) {
   const { position: springPosition } = useSpring({
     position,
@@ -50,6 +52,7 @@ function AnimatedAvatar({
         text={text}
         isSpeaking={isSpeaking}
         currentMessage={currentMessage}
+        animation={animation || currentMessage?.animation}
       />
     </animated.group>
   );
@@ -63,6 +66,8 @@ export function SceneCanvas({
   avatarZoom,
   currentMessage,
   onMessagePlayed,
+  animation,
+  background = "sunset",
 }: SceneCanvasProps) {
   // Reference to the animated avatar group
   const avatarGroupRef = useRef<THREE.Group>(null);
@@ -162,7 +167,7 @@ export function SceneCanvas({
             wheel: 2,
           }}
         />
-        <Environment preset="sunset" resolution={256} />
+        <Environment preset={background as any} resolution={256} />
         <ambientLight intensity={1} />
         <directionalLight
           position={[0, 2, 1]}
@@ -178,6 +183,7 @@ export function SceneCanvas({
             text={text}
             isSpeaking={isSpeaking}
             currentMessage={currentMessage}
+            animation={animation}
           />
         </group>
         <ContactShadows opacity={0.7} />

@@ -15,6 +15,8 @@ export type SceneCanvasProps = {
   avatarZoom: [x: number, y: number, z: number];
   currentMessage?: AvatarChatMessage | null;
   onMessagePlayed?: () => void;
+  animation?: string;
+  background?: string;
 };
 
 // Props for the AvatarNameDisplay component

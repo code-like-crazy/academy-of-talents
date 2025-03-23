@@ -8,7 +8,7 @@ import { Landing } from "@/components/Landing";
 
 export default function Home() {
   return (
-    <main className="h-screen w-screen">
+    <main className="h-screen w-full">
       {/* <Experience /> */}
       <Landing />
       {/* <LogoutButton /> */}
