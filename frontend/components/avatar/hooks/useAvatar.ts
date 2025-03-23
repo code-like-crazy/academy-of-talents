@@ -1,6 +1,7 @@
 import { teacherFacialExpressions } from "@/config/avatar/teacher";
 import { AvailableAvatars, getAvatarById } from "@/config/avatars";
 
+import AriaAvatar from "../AriaAvatar";
 import TeacherAvatar from "../TeacherAvatar";
 
 export const useAvatar = (type: AvailableAvatars) => {
@@ -10,12 +11,21 @@ export const useAvatar = (type: AvailableAvatars) => {
     throw new Error(`Invalid avatar type: ${type}`);
   }
 
-  // For now, all avatars use TeacherAvatar component and facial expressions
-  // This can be updated when new avatar components and expressions are added
+  const getAvatarComponent = () => {
+    switch (avatar.id) {
+      case "teacher":
+        return TeacherAvatar;
+      case "aria":
+        return AriaAvatar;
+      default:
+        return TeacherAvatar;
+    }
+  };
+
   return {
     modelPath: avatar.modelPath,
     animationsPath: avatar.animationsPath,
-    facialExpressions: teacherFacialExpressions,
-    component: TeacherAvatar,
+    facialExpressions: avatar.facialExpressions,
+    component: getAvatarComponent(),
   };
 };

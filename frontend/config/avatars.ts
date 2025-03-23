@@ -1,6 +1,14 @@
-import { ARIA_ANIMATIONS_PATH, ARIA_MODEL_PATH } from "./avatar/aria";
+import {
+  ARIA_ANIMATIONS_PATH,
+  ARIA_MODEL_PATH,
+  ariaFacialExpressions,
+} from "./avatar/aria";
 import { DEFAULT_BLINK_SETTINGS } from "./avatar/defaults";
-import { TEACHER_ANIMATIONS_PATH, TEACHER_MODEL_PATH } from "./avatar/teacher";
+import {
+  TEACHER_ANIMATIONS_PATH,
+  TEACHER_MODEL_PATH,
+  teacherFacialExpressions,
+} from "./avatar/teacher";
 
 export interface Avatar {
   id: "teacher" | "aria" | "rex";
@@ -8,6 +16,7 @@ export interface Avatar {
   modelPath: string;
   animationsPath: string;
   blinkSettings: BlinkSettings;
+  facialExpressions: Record<string, Record<string, number>>;
 }
 
 export type AvailableAvatars = (typeof avatars)[number]["id"];
@@ -19,6 +28,7 @@ export const avatars: Avatar[] = [
     modelPath: TEACHER_MODEL_PATH,
     animationsPath: TEACHER_ANIMATIONS_PATH,
     blinkSettings: DEFAULT_BLINK_SETTINGS,
+    facialExpressions: teacherFacialExpressions,
   },
   {
     id: "aria",
@@ -26,6 +36,7 @@ export const avatars: Avatar[] = [
     modelPath: ARIA_MODEL_PATH,
     animationsPath: ARIA_ANIMATIONS_PATH,
     blinkSettings: DEFAULT_BLINK_SETTINGS,
+    facialExpressions: ariaFacialExpressions,
   },
 ];
 
