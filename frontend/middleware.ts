@@ -6,7 +6,14 @@ import { auth } from "./auth";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   // TODO: update the auth routes post testing
-  const isAuthRoute = ["/login", "/register", "/chat", "/api/chat", "/api/image"].includes(pathname);
+  const isAuthRoute = [
+    "/login",
+    "/register",
+    "/chat",
+    "/api/chat",
+    "/api/image",
+    "/api/register",
+  ].includes(pathname);
   const isLandingPage = pathname === "/";
 
   // Get session using NextAuth
@@ -46,7 +53,7 @@ export const config = {
      * 7. /images/* (generated images)
      * 8. /public/images/* (public image files)
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|models/|sounds/|images/|public/images/).*)"
+    "/((?!api/auth|api/register|_next/static|_next/image|favicon.ico|models/|sounds/|images/|public/images/).*)",
   ],
   // matcher: ["/((?!static|favicon.ico|_next|.*\\..*|api|trpc).*)", "/"],
 };

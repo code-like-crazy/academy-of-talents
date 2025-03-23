@@ -37,7 +37,9 @@ export function RegisterForm() {
   async function onSubmit(data: RegisterInput) {
     startTransition(async () => {
       try {
-        const response = await fetch("/api/register", {
+        console.log("starting");
+
+        const response = await fetch("/api/register/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -49,7 +51,26 @@ export function RegisterForm() {
           }),
         });
 
-        const responseData = await response.json();
+        let responseData;
+        try {
+          console.log("[Form] Response status:", response.status);
+          console.log(
+            "[Form] Response headers:",
+            Object.fromEntries(response.headers.entries()),
+          );
+
+          responseData = await response.json();
+        } catch (error) {
+          console.error("Error parsing response:", error);
+          if (response.status === 404) {
+            toast.error(
+              "API endpoint not found. Please check your server configuration.",
+            );
+          } else {
+            toast.error("Server error. Please try again later.");
+          }
+          return;
+        }
 
         if (!response.ok) {
           if (response.status === 409) {
@@ -79,8 +100,7 @@ export function RegisterForm() {
           return;
         }
 
-        router.refresh();
-        router.push("/");
+        window.location.href = "/";
       } catch (error) {
         console.error("Registration error:", error);
         toast.error("Something went wrong. Please try again later.");

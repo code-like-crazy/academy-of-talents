@@ -8,8 +8,25 @@ import { users } from "@/lib/db/schema";
 import { registerApiSchema } from "@/lib/validations/auth";
 
 export async function POST(request: Request) {
+  console.log(
+    "[API] POST /api/register - Request received at:",
+    new Date().toISOString(),
+  );
   try {
+    console.log("[API] Registration request received");
+
+    // Check content type
+    const contentType = request.headers.get("Content-Type");
+    if (contentType !== "application/json") {
+      console.log("[API] Invalid content type:", contentType);
+      return NextResponse.json(
+        { message: "Invalid content type. Expected application/json" },
+        { status: 400 },
+      );
+    }
+
     const body = await request.json();
+    console.log("[API] Request body parsed successfully");
 
     const validationResult = registerApiSchema.safeParse(body);
 
@@ -24,6 +41,7 @@ export async function POST(request: Request) {
     }
 
     const { name, email, password } = validationResult.data;
+    console.log("validated successfully");
 
     // Check if user already exists
     const [existingUser] = await db
