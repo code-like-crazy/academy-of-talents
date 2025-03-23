@@ -41,3 +41,21 @@ yarn-error.log*
 next-env.d.ts
 .cline
 pnpm-lock.yaml
+
+# python
+__pycache__/*
+*.pyc
+*.pyo
+*.pyd
+
+# python
+venv/*
+backend/venv/*
+frontend/.next/*
+frontend/node_modules/*
+frontend/dist/*
+frontend/build/*
+frontend/public/build/*
+frontend/public/static/*
+frontend/public/images/*
+frontend/public/fonts/*
