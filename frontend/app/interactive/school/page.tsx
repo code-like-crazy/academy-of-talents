@@ -83,7 +83,7 @@ export default function InteractiveSchoolPage() {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-900">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-t-2 border-b-2 border-purple-500"></div>
+          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-t-2 border-b-2 border-blue-500"></div>
           <p className="text-xl text-white">Loading School Environment...</p>
         </div>
       </div>
@@ -110,7 +110,7 @@ export default function InteractiveSchoolPage() {
             <Link href="/ui">
               <Button
                 variant="outline"
-                className="border-purple-500 bg-purple-600 text-white hover:bg-purple-700"
+                className="rounded-lg border-blue-400 bg-blue-500 px-4 py-2 font-semibold tracking-wider text-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-400/30"
               >
                 Switch to UI Mode
               </Button>
@@ -121,7 +121,7 @@ export default function InteractiveSchoolPage() {
             {avatars.map((avatar) => (
               <Card
                 key={avatar.id}
-                className="overflow-hidden border-slate-700 bg-slate-800/80 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/20"
+                className="overflow-hidden border-slate-700 bg-slate-800/80 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20"
               >
                 <div className="relative aspect-video">
                   <Image
@@ -138,9 +138,11 @@ export default function InteractiveSchoolPage() {
                   <p className="mb-4 text-sm text-slate-300">
                     {getAvatarDescription(avatar.id)}
                   </p>
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                    Talk to {avatar.name.split(" ").pop()}
-                  </Button>
+                  <Link href={`/interactive/avatar/${avatar.id}`}>
+                    <Button className="w-full rounded-lg bg-blue-500 font-semibold tracking-wider text-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-400/30">
+                      Talk to {avatar.name.split(" ").pop()}
+                    </Button>
+                  </Link>
                 </div>
               </Card>
             ))}

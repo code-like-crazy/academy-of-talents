@@ -35,7 +35,7 @@ export default function InteractivePage() {
               <Link href="/interactive/school" className="w-full">
                 <Button
                   size="lg"
-                  className="w-full bg-purple-600 px-8 py-6 text-lg font-semibold text-white hover:bg-purple-700"
+                  className="w-full rounded-lg bg-blue-500 px-8 py-6 text-lg font-semibold tracking-wider text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-400/30"
                 >
                   Enter School
                 </Button>
