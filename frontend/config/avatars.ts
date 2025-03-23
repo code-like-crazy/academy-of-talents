@@ -5,6 +5,11 @@ import {
 } from "./avatar/aria";
 import { DEFAULT_BLINK_SETTINGS } from "./avatar/defaults";
 import {
+  REX_ANIMATIONS_PATH,
+  REX_MODEL_PATH,
+  rexFacialExpressions,
+} from "./avatar/rex";
+import {
   TEACHER_ANIMATIONS_PATH,
   TEACHER_MODEL_PATH,
   teacherFacialExpressions,
@@ -37,6 +42,14 @@ export const avatars: Avatar[] = [
     animationsPath: ARIA_ANIMATIONS_PATH,
     blinkSettings: DEFAULT_BLINK_SETTINGS,
     facialExpressions: ariaFacialExpressions,
+  },
+  {
+    id: "rex",
+    name: "Rex",
+    modelPath: REX_MODEL_PATH,
+    animationsPath: REX_ANIMATIONS_PATH,
+    blinkSettings: DEFAULT_BLINK_SETTINGS,
+    facialExpressions: rexFacialExpressions,
   },
 ];
 

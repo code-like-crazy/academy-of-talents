@@ -1,7 +1,7 @@
-import { teacherFacialExpressions } from "@/config/avatar/teacher";
 import { AvailableAvatars, getAvatarById } from "@/config/avatars";
 
 import AriaAvatar from "../AriaAvatar";
+import RexAvatar from "../RexAvatar";
 import TeacherAvatar from "../TeacherAvatar";
 
 export const useAvatar = (type: AvailableAvatars) => {
@@ -17,6 +17,8 @@ export const useAvatar = (type: AvailableAvatars) => {
         return TeacherAvatar;
       case "aria":
         return AriaAvatar;
+      case "rex":
+        return RexAvatar;
       default:
         return TeacherAvatar;
     }
