@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { AvailableAvatars } from "@/config/avatars";
 
+import { useChat } from "./avatar/hooks/useChat";
 import {
   AvatarNameDisplay,
   ChatBox,
@@ -49,10 +50,14 @@ export function Scene({
     // Here you would implement the actual setting change logic
   };
 
+  // Initialize the chat hook
+  const { currentMessage, sendMessage, onMessagePlayed, loading } = useChat({
+    avatarName: type,
+  });
+
   // Function to handle message sending
   const handleSendMessage = (message: string) => {
-    console.log("Message sent:", message);
-    // Here you would call your useChat hook to send the message
+    sendMessage(message);
   };
 
   // Function to toggle chat visibility
@@ -65,10 +70,12 @@ export function Scene({
       {/* 3D Scene Canvas */}
       <SceneCanvas
         type={type}
-        expression={expression}
-        text={text}
-        isSpeaking={isSpeaking}
+        expression={currentMessage?.facialExpression || expression}
+        text={currentMessage?.text || text}
+        isSpeaking={!!currentMessage || isSpeaking}
         avatarZoom={avatarZoom}
+        currentMessage={currentMessage}
+        onMessagePlayed={onMessagePlayed}
       />
 
       {/* UI Overlay */}
@@ -82,6 +89,7 @@ export function Scene({
           onSendMessage={handleSendMessage}
           isVisible={isChatVisible}
           onToggleVisibility={toggleChatVisibility}
+          currentMessage={currentMessage}
         />
       </div>
     </div>

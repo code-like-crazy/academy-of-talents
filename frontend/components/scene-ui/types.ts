@@ -1,4 +1,5 @@
 import { AvailableAvatars } from "@/config/avatars";
+import { ChatMessage as AvatarChatMessage } from "@/components/avatar/hooks/useChat";
 
 // Base props for all scene components
 export type SceneComponentProps = {
@@ -12,6 +13,8 @@ export type SceneCanvasProps = {
   text?: string;
   isSpeaking?: boolean;
   avatarZoom: [x: number, y: number, z: number];
+  currentMessage?: AvatarChatMessage | null;
+  onMessagePlayed?: () => void;
 };
 
 // Props for the AvatarNameDisplay component
@@ -50,4 +53,5 @@ export type ChatBoxProps = {
   initialMessages?: ChatMessage[];
   isVisible?: boolean;
   onToggleVisibility?: () => void;
+  currentMessage?: AvatarChatMessage | null;
 } & SceneComponentProps;

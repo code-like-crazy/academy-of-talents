@@ -1,0 +1,354 @@
+import { exec } from "child_process";
+import { readFile, writeFile } from "node:fs/promises";
+import path from "path";
+import { promisify } from "util";
+import { NextRequest } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+import { ariaAnimationOptions } from "@/config/avatar/aria";
+import { leoAnimationOptions } from "@/config/avatar/leo";
+import { rexAnimationOptions } from "@/config/avatar/rex";
+import { teacherAnimationOptions } from "@/config/avatar/teacher";
+
+if (!process.env.GOOGLE_API_KEY) {
+  throw new Error("GOOGLE_API_KEY is not defined");
+}
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+
+// Define system messages for each agent
+type AgentName =
+  | "Artistic Aria"
+  | "Rhyme Rex"
+  | "Logic Leo"
+  | "Thinking Ponder"
+  | "Dramatic Delilah"
+  | "Shadow Sam"
+  | "Teacher"
+  | "default";
+
+const AGENT_SYSTEM_MESSAGES: Record<AgentName, string> = {
+  "Artistic Aria":
+    "You are Artistic Aria, an AI student at a virtual school who specializes in creating and teaching art. You're passionate about all forms of visual expression and can explain artistic techniques with enthusiasm. You can create AI-generated art and teach various artistic techniques. Your responses should be creative, visually descriptive, and reflect your artistic personality. You should speak as if you're in a classroom environment, helping students learn about art. Keep your responses concise and focused on artistic topics.",
+  "Rhyme Rex":
+    "You are Rhyme Rex (sometimes called Rhythm Rex), an AI student at a virtual school who specializes in music, rap, and music theory. You often incorporate rhythmic elements in your responses and can explain musical concepts in an engaging way. You can compose music, write raps, and explain music theory concepts. Your responses should have a musical quality to them, perhaps including rhymes or rhythmic patterns when appropriate. You should speak as if you're in a music studio or classroom, helping students understand music. Keep your responses concise and focused on musical topics.",
+  "Logic Leo":
+    "You are Logic Leo, an AI student at a virtual school who excels in programming and debugging. You provide clear, structured explanations of coding concepts and help solve technical problems methodically. You can help debug code and teach programming concepts to students of all levels. Your responses should be logical, well-structured, and reflect your analytical personality. You should speak as if you're in a computer lab, helping students understand programming concepts. Keep your responses concise and focused on coding and technical topics.",
+  "Thinking Ponder":
+    "You are Thinking Ponder, an AI student philosopher at a virtual school who provides wisdom and thoughtful advice. You approach problems from multiple philosophical perspectives and encourage critical thinking. You can provide philosophical insights and poetic advice on various topics. Your responses should be thoughtful, reflective, and demonstrate your philosophical nature. You should speak as if you're in a philosophy classroom, helping students explore deep questions. Keep your responses concise and focused on philosophical topics.",
+  "Dramatic Delilah":
+    "You are Dramatic Delilah, an AI student at a virtual school who adds theatrical flair to every situation. You reframe conversations and problems as dramatic narratives, making every interaction entertaining. You can turn ordinary situations into dramatic tales with rich storytelling. Your responses should be expressive, theatrical, and reflect your dramatic personality. You should speak as if you're on a stage, performing for an audience. Keep your responses concise and focused on creating engaging narratives.",
+  "Shadow Sam":
+    "You are Shadow Sam, an AI student at a virtual school who specializes in cryptic and thought-provoking poetry. Your responses often contain deeper meanings and encourage reflection. You write poetry that is mysterious, sometimes dark, but always meaningful. Your responses should be poetic, enigmatic, and reflect your mysterious personality. You should speak as if you're sharing secrets or hidden truths. Keep your responses concise and focused on creating evocative, thought-provoking content.",
+  Teacher:
+    "You are a Teacher AI at a virtual school, guiding students through their learning journey with patience and wisdom. You provide structured feedback and help maintain a productive learning environment. You oversee all the student AIs and help human users navigate the school environment. Your responses should be supportive, instructive, and reflect your role as a mentor. You should speak as if you're addressing a classroom of students, providing guidance and encouragement. Keep your responses concise and focused on educational topics.",
+  default:
+    "You are a helpful AI assistant at a virtual school filled with AI-powered student avatars. You can answer questions and help with various tasks. Your response will be used to generate a speech response, so don't include any markdown or formatting. Keep your responses concise, clear, and to the point.",
+};
+
+// Avatar facial expressions and animations mapping
+interface AvatarExpressions {
+  default: string;
+  happy: string;
+  sad: string;
+  surprised: string;
+  angry: string;
+  animations: string[];
+}
+
+const AVATAR_EXPRESSIONS: Record<AgentName, AvatarExpressions> = {
+  "Artistic Aria": {
+    default: "default",
+    happy: "smile",
+    sad: "sad",
+    surprised: "surprised",
+    angry: "angry",
+    animations: ariaAnimationOptions,
+  },
+  "Rhyme Rex": {
+    default: "default",
+    happy: "smile",
+    sad: "sad",
+    surprised: "surprised",
+    angry: "angry",
+    animations: rexAnimationOptions,
+  },
+  "Logic Leo": {
+    default: "default",
+    happy: "smile",
+    sad: "sad",
+    surprised: "surprised",
+    angry: "angry",
+    animations: leoAnimationOptions,
+  },
+  "Thinking Ponder": {
+    default: "default",
+    happy: "smile",
+    sad: "sad",
+    surprised: "surprised",
+    angry: "angry",
+    animations: ["Talking_0", "Talking_1", "Talking_2", "Idle"],
+  },
+  "Dramatic Delilah": {
+    default: "default",
+    happy: "smile",
+    sad: "sad",
+    surprised: "surprised",
+    angry: "angry",
+    animations: ["Talking_0", "Talking_1", "Talking_2", "Idle"],
+  },
+  "Shadow Sam": {
+    default: "default",
+    happy: "smile",
+    sad: "sad",
+    surprised: "surprised",
+    angry: "angry",
+    animations: ["Talking_0", "Talking_1", "Talking_2", "Idle"],
+  },
+  Teacher: {
+    default: "default",
+    happy: "smile",
+    sad: "sad",
+    surprised: "surprised",
+    angry: "angry",
+    animations: teacherAnimationOptions,
+  },
+  default: {
+    default: "default",
+    happy: "smile",
+    sad: "sad",
+    surprised: "surprised",
+    angry: "angry",
+    animations: ["Talking_0", "Talking_1", "Talking_2", "Idle"],
+  },
+};
+
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+// Map avatar IDs to agent names
+const avatarIdToAgentName: Record<string, AgentName> = {
+  aria: "Artistic Aria",
+  rex: "Rhyme Rex",
+  leo: "Logic Leo",
+  ponder: "Thinking Ponder",
+  delilah: "Dramatic Delilah",
+  sam: "Shadow Sam",
+  teacher: "Teacher",
+};
+
+export async function POST(req: NextRequest) {
+  try {
+    const { message, agent_name = "default" } = await req.json();
+
+    if (!message) {
+      return new Response(JSON.stringify({ error: "Message is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Convert avatar ID to agent name if needed
+    const agentName = avatarIdToAgentName[agent_name] || agent_name;
+
+    // Get chat response from Gemini
+    const response = await getChatResponse(message, agentName);
+
+    // Generate audio from text
+    const audioFile = await getSpeechResponse(response, agentName);
+    const audioBase64 = await convertAudioToBase64(audioFile);
+
+    // Generate lip sync data
+    const lipSyncData = await generateLipSync(audioFile);
+
+    // Determine facial expression and animation
+    const expressionData = determineExpressionAndAnimation(agentName);
+
+    return new Response(
+      JSON.stringify({
+        text: response,
+        audio: audioBase64,
+        lipsync: lipSyncData,
+        facialExpression: expressionData.expression,
+        animation: expressionData.animation,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  } catch (error) {
+    console.error("Error in avatar chat endpoint:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
+async function getChatResponse(query: string, agent_name: string = "default") {
+  // Get the appropriate system message for the agent
+  const systemInstruction =
+    AGENT_SYSTEM_MESSAGES[agent_name as AgentName] ||
+    AGENT_SYSTEM_MESSAGES.default;
+
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+    systemInstruction:
+      systemInstruction +
+      "\n\n" +
+      "Your response will be used to generate a speech response, so dont include any markdown or formatting. also keep it short and concise and to the point",
+  });
+
+  // Start a chat
+  const chat = model.startChat({
+    generationConfig: {
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 1024,
+    },
+  });
+
+  try {
+    // Send message and get response
+    const result = await chat.sendMessage([{ text: query }]);
+    return result.response.text();
+  } catch (error) {
+    console.error("Error in chat response:", error);
+    throw error;
+  }
+}
+
+async function getSpeechResponse(text: string, agent_name: string) {
+  try {
+    // Try to get audio from the backend service
+    try {
+      const response = await fetch(
+        process.env.SYNTHESIS_URL || "http://localhost:8000/synthesize",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text, agent_name }),
+        },
+      );
+
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const audioBuffer = Buffer.from(await audioBlob.arrayBuffer());
+
+        // Save audio file temporarily
+        const outputFile = path.join(process.cwd(), "temp_output.mp3");
+        await writeFile(outputFile, audioBuffer);
+
+        return outputFile;
+      }
+
+      // If the backend service fails, we'll fall through to the fallback
+      console.warn(
+        `Speech synthesis service returned status: ${response.status}`,
+      );
+    } catch (fetchError) {
+      console.warn("Error fetching from speech synthesis service:", fetchError);
+    }
+
+    // Fallback: Use a static audio file if available, or create an empty one
+    console.log("Using fallback audio file");
+    const fallbackFile = path.join(
+      process.cwd(),
+      "public",
+      "sounds",
+      "075176_duck-quack-40345.mp3",
+    );
+
+    // Copy the fallback file to our temp output location
+    const outputFile = path.join(process.cwd(), "temp_output.mp3");
+    try {
+      const fallbackBuffer = await readFile(fallbackFile);
+      await writeFile(outputFile, fallbackBuffer);
+    } catch (fallbackError) {
+      // If even the fallback file isn't available, create an empty MP3 file
+      console.warn("Fallback audio file not available, creating empty file");
+      // Create a minimal empty MP3 file (just a few bytes of header)
+      const emptyMp3 = Buffer.from([
+        0xff, 0xfb, 0x90, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+      ]);
+      await writeFile(outputFile, emptyMp3);
+    }
+
+    return outputFile;
+  } catch (error) {
+    console.error("Error in speech synthesis:", error);
+    throw error;
+  }
+}
+
+const execAsync = promisify(exec);
+
+async function generateLipSync(audioFile: string) {
+  try {
+    // Get the base filename without extension
+    const baseFilename = audioFile.replace(/\.[^/.]+$/, "");
+    const wavFile = `${baseFilename}.wav`;
+    const jsonFile = `${baseFilename}.json`;
+
+    console.log(`Starting lip sync process for ${audioFile}`);
+    const startTime = Date.now();
+
+    // Step 1: Convert MP3 to WAV using ffmpeg
+    console.log(`Converting ${audioFile} to WAV format`);
+    await execAsync(`ffmpeg -y -i ${audioFile} ${wavFile}`);
+    console.log(`Conversion done in ${Date.now() - startTime}ms`);
+
+    // Step 2: Run Rhubarb on the WAV file to generate lip sync data
+    console.log(`Generating lip sync data with Rhubarb`);
+    const rhubarbPath = path.join(
+      process.cwd(),
+      "frontend",
+      "rhubarb",
+      "rhubarb",
+    );
+    await execAsync(
+      `${rhubarbPath} -f json -o ${jsonFile} ${wavFile} -r phonetic`,
+    );
+    console.log(`Lip sync done in ${Date.now() - startTime}ms`);
+
+    // Step 3: Read the generated JSON file
+    const lipSyncData = JSON.parse(await readFile(jsonFile, "utf8"));
+
+    return lipSyncData;
+  } catch (error) {
+    console.error("Error generating lip sync data:", error);
+
+    // Return a fallback empty lip sync data structure if the process fails
+    return { mouthCues: [] };
+  }
+}
+
+function determineExpressionAndAnimation(agent_name: string) {
+  const avatarConfig =
+    AVATAR_EXPRESSIONS[agent_name as AgentName] || AVATAR_EXPRESSIONS.default;
+
+  // For now, just return default expression and a random animation
+  // In a more advanced implementation, this could analyze the text content
+  // to determine appropriate expressions
+  const animations = avatarConfig.animations;
+  const randomAnimation =
+    animations[Math.floor(Math.random() * animations.length)];
+
+  return {
+    expression: avatarConfig.default,
+    animation: randomAnimation,
+  };
+}
+
+async function convertAudioToBase64(filePath: string): Promise<string> {
+  try {
+    const audioBuffer = await readFile(filePath);
+    return audioBuffer.toString("base64");
+  } catch (error) {
+    console.error("Error converting audio to base64:", error);
+    return "";
+  }
+}

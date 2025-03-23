@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MessageSquare, Mic, Send, X } from "lucide-react";
+import { Mic, Send, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,7 @@ export function ChatBox({
   initialMessages = [],
   isVisible = true,
   onToggleVisibility,
+  currentMessage,
 }: ChatBoxProps) {
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -110,6 +111,32 @@ export function ChatBox({
       textareaRef.current.style.height = `${scrollHeight}px`;
     }
   }, [message]);
+
+  // Track the last message to prevent duplicates
+  const lastMessageRef = useRef<string | null>(null);
+
+  // Add avatar response to chat history when currentMessage changes
+  useEffect(() => {
+    if (currentMessage && currentMessage.text) {
+      // Check if this is a new message to avoid duplicates
+      const messageId = `${currentMessage.text}-${Date.now()}`;
+      if (lastMessageRef.current !== messageId) {
+        // Create a new chat message from the avatar response
+        const avatarMessage: ChatMessage = {
+          id: Date.now().toString(),
+          content: currentMessage.text,
+          sender: "avatar",
+          timestamp: new Date(),
+        };
+
+        // Add the message to chat history
+        setChatHistory((prev) => [...prev, avatarMessage]);
+
+        // Update the last message ref
+        lastMessageRef.current = messageId;
+      }
+    }
+  }, [currentMessage]);
 
   // Scroll to bottom of chat when new messages arrive
   useEffect(() => {

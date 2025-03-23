@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { animated, useSpring } from "@react-spring/three";
 import {
   CameraControls,
@@ -10,9 +10,11 @@ import {
   Loader,
 } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
+import * as THREE from "three";
 
 import { AvailableAvatars } from "@/config/avatars";
 import { Avatar } from "@/components/avatar";
+import { ChatMessage } from "@/components/avatar/hooks/useChat";
 
 import { SceneCanvasProps } from "./types";
 
@@ -22,6 +24,7 @@ type AnimatedAvatarProps = {
   expression?: string;
   text?: string;
   isSpeaking?: boolean;
+  currentMessage?: ChatMessage | null;
 };
 
 function AnimatedAvatar({
@@ -30,19 +33,23 @@ function AnimatedAvatar({
   expression,
   text,
   isSpeaking,
+  currentMessage,
 }: AnimatedAvatarProps) {
   const { position: springPosition } = useSpring({
     position,
     config: { mass: 1, tension: 120, friction: 14 },
   });
 
+  const groupRef = useRef<THREE.Group>(null);
+
   return (
-    <animated.group position={springPosition}>
+    <animated.group position={springPosition} ref={groupRef}>
       <Avatar
         type={type}
         expression={expression}
         text={text}
         isSpeaking={isSpeaking}
+        currentMessage={currentMessage}
       />
     </animated.group>
   );
@@ -54,7 +61,40 @@ export function SceneCanvas({
   text = "",
   isSpeaking = false,
   avatarZoom,
+  currentMessage,
+  onMessagePlayed,
 }: SceneCanvasProps) {
+  // Reference to the animated avatar group
+  const avatarGroupRef = useRef<THREE.Group>(null);
+
+  // Store the onMessagePlayed callback in the userData of the avatar group
+  useEffect(() => {
+    if (avatarGroupRef.current && onMessagePlayed) {
+      // Store the callback in the userData of the group
+      avatarGroupRef.current.userData.onMessagePlayed = onMessagePlayed;
+
+      // Also store it in all child groups to ensure it's accessible
+      avatarGroupRef.current.traverse((child) => {
+        if (child instanceof THREE.Group) {
+          child.userData.onMessagePlayed = onMessagePlayed;
+        }
+      });
+    }
+  }, [onMessagePlayed]);
+  // Handle message completion
+  useEffect(() => {
+    if (!currentMessage) return;
+
+    // Set a timeout to call onMessagePlayed after a reasonable time
+    // This is a fallback in case the audio playback in the Avatar component fails
+    const messageTimeout = setTimeout(() => {
+      if (onMessagePlayed) {
+        onMessagePlayed();
+      }
+    }, 10000); // 10 seconds timeout as fallback
+
+    return () => clearTimeout(messageTimeout);
+  }, [currentMessage, onMessagePlayed]);
   return (
     <Canvas
       shadows
@@ -130,13 +170,16 @@ export function SceneCanvas({
           castShadow
           shadow-mapSize={[512, 512]}
         />
-        <AnimatedAvatar
-          position={avatarZoom}
-          type={type}
-          expression={expression}
-          text={text}
-          isSpeaking={isSpeaking}
-        />
+        <group ref={avatarGroupRef}>
+          <AnimatedAvatar
+            position={avatarZoom}
+            type={type}
+            expression={expression}
+            text={text}
+            isSpeaking={isSpeaking}
+            currentMessage={currentMessage}
+          />
+        </group>
         <ContactShadows opacity={0.7} />
       </Suspense>
     </Canvas>
