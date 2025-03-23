@@ -31,6 +31,13 @@ export interface Avatar {
 
 export type AvailableAvatars = (typeof avatars)[number]["id"];
 
+export const avatarBackgrounds: Record<AvailableAvatars, string> = {
+  teacher: "/backgrounds/teacher.webp",
+  aria: "/backgrounds/aria.webp",
+  rex: "/backgrounds/rex.webp",
+  leo: "/backgrounds/leo.webp",
+};
+
 export const avatars: Avatar[] = [
   {
     id: "teacher",
@@ -74,4 +81,8 @@ export interface BlinkSettings {
 
 export const getAvatarById = (id: string): Avatar | undefined => {
   return avatars.find((avatar) => avatar.id === id);
+};
+
+export const getAvatarBackground = (id: AvailableAvatars): string => {
+  return avatarBackgrounds[id];
 };

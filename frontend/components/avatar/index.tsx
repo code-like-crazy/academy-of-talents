@@ -7,8 +7,8 @@ import { button, useControls } from "leva";
 import * as THREE from "three";
 import { GLTF } from "three-stdlib";
 
-import { AvailableAvatars } from "@/config/avatars";
 import { rhubarbPhonemes } from "@/config/avatar/rhubarb";
+import { AvailableAvatars } from "@/config/avatars";
 
 import { useAvatar } from "./hooks/useAvatar";
 import { useRhubarb } from "./hooks/useRhubarb";
@@ -243,16 +243,18 @@ export function Avatar({
   useEffect(() => {
     let blinkTimeout: NodeJS.Timeout;
     const nextBlink = () => {
-      blinkTimeout = setTimeout(
-        () => {
-          setBlink(true);
-          setTimeout(() => {
-            setBlink(false);
-            nextBlink();
-          }, 200);
-        },
-        THREE.MathUtils.randInt(1000, 5000),
-      );
+      const delay =
+        typeof window !== "undefined"
+          ? THREE.MathUtils.randInt(1000, 5000)
+          : 3000; // Default delay for initial server render
+
+      blinkTimeout = setTimeout(() => {
+        setBlink(true);
+        setTimeout(() => {
+          setBlink(false);
+          nextBlink();
+        }, 200);
+      }, delay);
     };
     nextBlink();
     return () => clearTimeout(blinkTimeout);

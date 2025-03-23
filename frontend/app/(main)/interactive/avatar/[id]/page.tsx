@@ -1,6 +1,7 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
-import { getAvatarById } from "@/config/avatars";
+import { getAvatarBackground, getAvatarById } from "@/config/avatars";
 import { Scene } from "@/components/Scene";
 
 type Props = {
@@ -19,8 +20,14 @@ const AvatarPage = async ({ params }: Props) => {
   }
 
   return (
-    <div className="min-h-svh w-full p-6">
-      <div className="relative h-[calc(100svh-4rem)] overflow-hidden rounded-xl bg-slate-900">
+    <div className="min-h-svh w-full px-3 pt-3">
+      <div className="relative h-[calc(100svh-24px)] overflow-hidden rounded-xl bg-slate-900">
+        <Image
+          src={getAvatarBackground(avatar.id)}
+          alt="Avatar background"
+          fill
+          className="object-cover"
+        />
         <Scene type={avatar.id} />
       </div>
     </div>

@@ -21,12 +21,17 @@ type SceneProps = {
   isSpeaking?: boolean;
 };
 
-export function Scene({ type, expression = "default", text = "", isSpeaking = false }: SceneProps) {
+export function Scene({
+  type,
+  expression = "default",
+  text = "",
+  isSpeaking = false,
+}: SceneProps) {
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <Canvas
         shadows
-        camera={{ position: [0, 1.5, 7], fov: 30 }}
+        camera={{ position: [0, 1.5, 7], fov: 25 }}
         style={{
           position: "absolute",
           top: 0,
@@ -91,16 +96,16 @@ export function Scene({ type, expression = "default", text = "", isSpeaking = fa
             }}
           />
           <Environment preset="sunset" resolution={256} />
-          <ambientLight intensity={0.8} />
+          <ambientLight intensity={1} />
           <directionalLight
             position={[0, 2, 1]}
             intensity={1.5}
             castShadow
             shadow-mapSize={[512, 512]}
           />
-          <Avatar 
-            position={[0, -0.3, 5]} 
-            type={type} 
+          <Avatar
+            position={[0, -0.45, 5]}
+            type={type}
             expression={expression}
             text={text}
             isSpeaking={isSpeaking}
