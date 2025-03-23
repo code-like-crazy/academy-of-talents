@@ -14,7 +14,12 @@ if (!process.env.GOOGLE_API_KEY) {
   throw new Error("GOOGLE_API_KEY is not defined");
 }
 
+if (!process.env.ELEVENLABS_API_KEY) {
+  throw new Error("ELEVENLABS_API_KEY is not defined");
+}
+
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
 // Define system messages for each agent
 type AgentName =
@@ -26,6 +31,19 @@ type AgentName =
   | "Shadow Sam"
   | "Teacher"
   | "default";
+
+// Define ElevenLabs voice IDs for each avatar
+// Female voices for female avatars, male voice for Leo
+const AVATAR_VOICE_IDS: Record<AgentName, string> = {
+  "Artistic Aria": "21m00Tcm4TlvDq8ikWAM", // Rachel - Female
+  "Rhyme Rex": "EXAVITQu4vr4xnSDxMaL", // Bella - Female
+  "Logic Leo": "pNInz6obpgDQGcFmaJgB", // Adam - Male
+  "Thinking Ponder": "21m00Tcm4TlvDq8ikWAM", // Rachel - Female
+  "Dramatic Delilah": "EXAVITQu4vr4xnSDxMaL", // Bella - Female
+  "Shadow Sam": "pNInz6obpgDQGcFmaJgB", // Adam - Male
+  Teacher: "21m00Tcm4TlvDq8ikWAM", // Rachel - Female
+  default: "21m00Tcm4TlvDq8ikWAM", // Rachel - Female
+};
 
 const AGENT_SYSTEM_MESSAGES: Record<AgentName, string> = {
   "Artistic Aria":
@@ -158,23 +176,44 @@ export async function POST(req: NextRequest) {
     const audioBase64 = await convertAudioToBase64(audioFile);
 
     // Generate lip sync data
+    console.log("About to generate lip sync data for audio file:", audioFile);
     const lipSyncData = await generateLipSync(audioFile);
+    console.log(
+      "Lip sync data generated:",
+      JSON.stringify(lipSyncData).substring(0, 200) + "...",
+    );
 
     // Determine facial expression and animation
     const expressionData = determineExpressionAndAnimation(agentName);
 
-    return new Response(
+    const responseData = {
+      text: response,
+      audio: audioBase64,
+      lipsync: lipSyncData,
+      facialExpression: expressionData.expression,
+      animation: expressionData.animation,
+    };
+
+    console.log(
+      "Sending response with lip sync data:",
       JSON.stringify({
-        text: response,
-        audio: audioBase64,
-        lipsync: lipSyncData,
-        facialExpression: expressionData.expression,
-        animation: expressionData.animation,
+        text: response.substring(0, 30) + "...",
+        audioLength: audioBase64 ? audioBase64.length : 0,
+        lipsync: {
+          metadata: lipSyncData.metadata,
+          mouthCuesCount: lipSyncData.mouthCues
+            ? lipSyncData.mouthCues.length
+            : 0,
+          firstFewCues: lipSyncData.mouthCues
+            ? lipSyncData.mouthCues.slice(0, 3)
+            : [],
+        },
       }),
-      {
-        headers: { "Content-Type": "application/json" },
-      },
     );
+
+    return new Response(JSON.stringify(responseData), {
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error in avatar chat endpoint:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
@@ -220,36 +259,60 @@ async function getChatResponse(query: string, agent_name: string = "default") {
 
 async function getSpeechResponse(text: string, agent_name: string) {
   try {
-    // Try to get audio from the backend service
+    // Get the appropriate voice ID for the agent
+    const agentName = agent_name as AgentName;
+    const voiceId = AVATAR_VOICE_IDS[agentName] || AVATAR_VOICE_IDS.default;
+
+    console.log(
+      `Generating speech for ${agent_name} using voice ID: ${voiceId}`,
+    );
+
+    // Create a unique filename based on timestamp
+    const timestamp = Date.now();
+    const outputFile = path.join(process.cwd(), `temp_output_${timestamp}.mp3`);
+
     try {
+      // Call ElevenLabs API for text-to-speech using fetch
       const response = await fetch(
-        process.env.SYNTHESIS_URL || "http://localhost:8000/synthesize",
+        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
         {
           method: "POST",
           headers: {
+            Accept: "audio/mpeg",
             "Content-Type": "application/json",
+            "xi-api-key": ELEVENLABS_API_KEY,
           },
-          body: JSON.stringify({ text, agent_name }),
+          body: JSON.stringify({
+            text: text,
+            model_id: "eleven_monolingual_v1",
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75,
+            },
+          }),
         },
       );
 
-      if (response.ok) {
-        const audioBlob = await response.blob();
-        const audioBuffer = Buffer.from(await audioBlob.arrayBuffer());
-
-        // Save audio file temporarily
-        const outputFile = path.join(process.cwd(), "temp_output.mp3");
-        await writeFile(outputFile, audioBuffer);
-
-        return outputFile;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          `ElevenLabs API error: ${response.status} - ${errorText}`,
+        );
+        throw new Error(`ElevenLabs API error: ${response.status}`);
       }
 
-      // If the backend service fails, we'll fall through to the fallback
-      console.warn(
-        `Speech synthesis service returned status: ${response.status}`,
-      );
-    } catch (fetchError) {
-      console.warn("Error fetching from speech synthesis service:", fetchError);
+      // Get the audio data as an ArrayBuffer
+      const audioArrayBuffer = await response.arrayBuffer();
+
+      // Save the audio file
+      await writeFile(outputFile, Buffer.from(audioArrayBuffer));
+      console.log(`Speech generated successfully and saved to ${outputFile}`);
+
+      return outputFile;
+    } catch (apiError: any) {
+      console.error("Error calling ElevenLabs API:", apiError.message);
+
+      // Fall through to fallback
     }
 
     // Fallback: Use a static audio file if available, or create an empty one
@@ -262,7 +325,6 @@ async function getSpeechResponse(text: string, agent_name: string) {
     );
 
     // Copy the fallback file to our temp output location
-    const outputFile = path.join(process.cwd(), "temp_output.mp3");
     try {
       const fallbackBuffer = await readFile(fallbackFile);
       await writeFile(outputFile, fallbackBuffer);
@@ -316,7 +378,44 @@ async function generateLipSync(audioFile: string) {
 
     // Step 2: Run Rhubarb on the WAV file to generate lip sync data
     console.log(`Generating lip sync data with Rhubarb`);
-    const rhubarbPath = path.resolve(baseDir, "frontend", "rhubarb", "rhubarb");
+
+    // Determine the correct path to rhubarb executable
+    let rhubarbPath;
+    if (process.env.NODE_ENV === "production") {
+      // In production, use the path relative to the deployed app
+      rhubarbPath = path.resolve(baseDir, "frontend", "rhubarb", "rhubarb");
+    } else {
+      // In development, use the path relative to the current working directory
+      rhubarbPath = path.resolve(baseDir, "rhubarb", "rhubarb");
+    }
+
+    // Check if rhubarb executable exists
+    try {
+      await readFile(rhubarbPath);
+      console.log(`Rhubarb executable found at: ${rhubarbPath}`);
+    } catch (error) {
+      console.error(`Rhubarb executable not found at: ${rhubarbPath}`);
+
+      // Try to find rhubarb in alternative locations
+      const possiblePaths = [
+        path.resolve(baseDir, "rhubarb", "rhubarb"),
+        path.resolve(baseDir, "frontend", "rhubarb", "rhubarb"),
+        path.resolve(baseDir, "..", "rhubarb", "rhubarb"),
+        path.resolve(baseDir, "rhubarb", "rhubarb.exe"),
+        path.resolve(baseDir, "frontend", "rhubarb", "rhubarb.exe"),
+      ];
+
+      for (const altPath of possiblePaths) {
+        try {
+          await readFile(altPath);
+          console.log(`Found rhubarb at alternative location: ${altPath}`);
+          rhubarbPath = altPath;
+          break;
+        } catch (e) {
+          // Continue checking other paths
+        }
+      }
+    }
 
     // Make sure rhubarb is executable
     try {
@@ -326,6 +425,7 @@ async function generateLipSync(audioFile: string) {
     }
 
     try {
+      // Use phonetic recognition for faster processing
       const rhubarbCommand = `"${rhubarbPath}" -f json -o "${jsonFile}" "${wavFile}" -r phonetic`;
       console.log(`Running command: ${rhubarbCommand}`);
       const { stdout, stderr } = await execAsync(rhubarbCommand);
@@ -356,6 +456,20 @@ async function generateLipSync(audioFile: string) {
       ) {
         throw new Error("Invalid lip sync data format");
       }
+
+      // Add additional metadata to help with debugging
+      if (!lipSyncData.metadata) {
+        lipSyncData.metadata = {};
+      }
+
+      lipSyncData.metadata.processedAt = new Date().toISOString();
+      lipSyncData.metadata.soundFile = audioFile;
+
+      // Calculate total duration from the last mouth cue
+      if (lipSyncData.mouthCues.length > 0) {
+        const lastCue = lipSyncData.mouthCues[lipSyncData.mouthCues.length - 1];
+        lipSyncData.metadata.duration = lastCue.end;
+      }
     } catch (error: any) {
       console.error("Error reading or parsing lip sync JSON:", error);
       throw new Error(
@@ -381,6 +495,8 @@ async function generateLipSync(audioFile: string) {
       metadata: {
         soundFile: audioFile,
         duration: 0,
+        processedAt: new Date().toISOString(),
+        error: error instanceof Error ? error.message : "Unknown error",
       },
       mouthCues: [],
     };

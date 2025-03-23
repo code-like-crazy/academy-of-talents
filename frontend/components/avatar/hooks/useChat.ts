@@ -47,6 +47,10 @@ export const useChat = ({ avatarName }: UseChatProps) => {
       setLoading(true);
 
       try {
+        console.log(
+          `Sending message to avatar API: "${message}" for avatar: ${avatarName}`,
+        );
+
         const response = await fetch("/api/chat/avatar", {
           method: "POST",
           headers: {
@@ -64,6 +68,25 @@ export const useChat = ({ avatarName }: UseChatProps) => {
 
         const data = await response.json();
 
+        console.log("Received response from avatar API:", {
+          textLength: data.text?.length || 0,
+          audioLength: data.audio?.length || 0,
+          hasLipsync: !!data.lipsync,
+          lipsyncMouthCues: data.lipsync?.mouthCues?.length || 0,
+        });
+
+        // Validate lipsync data
+        if (
+          !data.lipsync ||
+          !data.lipsync.mouthCues ||
+          !Array.isArray(data.lipsync.mouthCues)
+        ) {
+          console.error(
+            "Invalid or missing lipsync data in API response:",
+            data.lipsync,
+          );
+        }
+
         // Add the response to the messages queue
         setMessages((prev) => [...prev, data]);
       } catch (error) {
@@ -77,6 +100,7 @@ export const useChat = ({ avatarName }: UseChatProps) => {
 
   // Function to handle when a message has been played
   const onMessagePlayed = useCallback(() => {
+    console.log("onMessagePlayed callback triggered in useChat");
     setMessages((prev) => prev.slice(1));
     setCurrentMessage(null);
   }, []);

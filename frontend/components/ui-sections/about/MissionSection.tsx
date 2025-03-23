@@ -15,8 +15,8 @@ export function MissionSection() {
           everyone.
         </p>
         <p className="text-foreground/70">
-          Whether you're looking to solve a problem, learn a new skill, or just
-          have fun, our AI-powered students are here to help you on your
+          Whether you&apos;re looking to solve a problem, learn a new skill, or
+          just have fun, our AI-powered students are here to help you on your
           journey.
         </p>
       </div>

@@ -1,17 +1,21 @@
-import { Environment, OrbitControls, ContactShadows } from "@react-three/drei";
-import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
+import { ContactShadows, Environment, OrbitControls } from "@react-three/drei";
+import { useThree } from "@react-three/fiber";
 import { MathUtils } from "three";
 import * as THREE from "three";
-import { Background } from "./Background";
+
 import Duck from "../graphs/Duck";
+import { Background } from "./Background";
 
 interface LandingExperienceProps {
   isZooming: boolean;
   onAnimationComplete: () => void;
 }
 
-export const LandingExperience = ({ isZooming, onAnimationComplete }: LandingExperienceProps) => {
+export const LandingExperience = ({
+  isZooming,
+  onAnimationComplete,
+}: LandingExperienceProps) => {
   const { camera } = useThree();
   const controlsRef = useRef<any>(null);
 
@@ -19,29 +23,34 @@ export const LandingExperience = ({ isZooming, onAnimationComplete }: LandingExp
     if (isZooming && camera && controlsRef.current) {
       // Disable controls during animation
       controlsRef.current.enabled = false;
-      
+
       // Animate camera position and target
       const startPosition = camera.position.clone();
       const startTarget = controlsRef.current.target.clone();
-      
+
       // Adjust these values to get a better view of the duck's face
       const endPosition = new THREE.Vector3(0.4, 0.1, 0.6);
       const endTarget = new THREE.Vector3(0.9, 0.1, -0.5);
-      
+
       const duration = 2000; // 2 seconds
       const startTime = Date.now();
 
       const animate = () => {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        
+
         // Easing function for smooth animation
-        const easeProgress = progress < 0.5
-          ? 2 * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        const easeProgress =
+          progress < 0.5
+            ? 2 * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
         camera.position.lerpVectors(startPosition, endPosition, easeProgress);
-        controlsRef.current.target.lerpVectors(startTarget, endTarget, easeProgress);
+        controlsRef.current.target.lerpVectors(
+          startTarget,
+          endTarget,
+          easeProgress,
+        );
         controlsRef.current.update();
 
         if (progress < 1) {
@@ -82,4 +91,4 @@ export const LandingExperience = ({ isZooming, onAnimationComplete }: LandingExp
       </group>
     </>
   );
-}; 
+};

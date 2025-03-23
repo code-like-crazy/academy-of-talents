@@ -26,7 +26,7 @@ export function SettingsDialog({ onSettingChange }: SettingsDialogProps) {
 
   const handleAvatarChange = (avatar: AvailableAvatars) => {
     if (onSettingChange) {
-      onSettingChange("avatar", avatar);
+      router.push(`/interactive/avatar/${avatar}`);
     }
   };
 

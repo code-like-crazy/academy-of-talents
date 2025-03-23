@@ -78,19 +78,19 @@ export function Avatar({
     }
   }, [animation, actions]);
 
-  // Map Rhubarb phonemes to viseme morphs
+  // Map Rhubarb phonemes to morph targets
   // These mappings are based on the standard Rhubarb phoneme set
-  // and the available visemes in the avatar model
-  const phonemeToViseme: Record<string, string> = {
-    A: "viseme_PP", // Vowel sound in "bat" - Closed lips
-    B: "viseme_kk", // B, M, P sounds - Slightly open mouth
-    C: "viseme_I", // Vowel sound in "bot" - Open mouth
-    D: "viseme_AA", // D, T, N sounds - Wide open mouth
-    E: "viseme_O", // Vowel sound in "bet" - Rounded lips
-    F: "viseme_U", // F, V sounds - Teeth on lower lip
-    G: "viseme_FF", // Vowel sound in "boot" - Rounded small opening
-    H: "viseme_TH", // L, R sounds - Tongue visible
-    X: "viseme_PP", // Neutral/rest position - Closed lips
+  // and the available morph targets in the avatar model
+  const phonemeToMorphTargets: Record<string, Record<string, number>> = {
+    A: { mouthOpen: 0.8, mouthStretchLeft: 0.4, mouthStretchRight: 0.4 }, // Vowel sound in "bat"
+    B: { mouthClose: 0.8, mouthPucker: 0.3 }, // B, M, P sounds
+    C: { mouthOpen: 1.0, mouthStretchLeft: 0.6, mouthStretchRight: 0.6 }, // Vowel sound in "bot"
+    D: { mouthOpen: 0.7, mouthFunnel: 0.3 }, // D, T, N sounds
+    E: { mouthOpen: 0.5, mouthSmileLeft: 0.3, mouthSmileRight: 0.3 }, // Vowel sound in "bet"
+    F: { mouthOpen: 0.3, mouthLowerDownLeft: 0.5, mouthLowerDownRight: 0.5 }, // F, V sounds
+    G: { mouthOpen: 0.4, mouthPucker: 0.5 }, // Vowel sound in "boot"
+    H: { mouthOpen: 0.5, mouthDimpleLeft: 0.3, mouthDimpleRight: 0.3 }, // L, R sounds
+    X: { mouthClose: 0.5 }, // Neutral/rest position
   };
 
   // Store audio element reference
@@ -134,6 +134,7 @@ export function Avatar({
   }, [currentAnimation, actions]);
 
   const lerpMorphTarget = (target: string, value: number, speed = 0.5) => {
+    let applied = false;
     scene.traverse((child) => {
       const skinnedMesh = child as THREE.SkinnedMesh;
       if (
@@ -152,11 +153,18 @@ export function Avatar({
         return;
       }
 
-      skinnedMesh.morphTargetInfluences[index] = THREE.MathUtils.lerp(
-        skinnedMesh.morphTargetInfluences[index],
-        value,
-        speed,
-      );
+      // Only log significant changes to avoid console spam
+      const currentValue = skinnedMesh.morphTargetInfluences[index];
+      const newValue = THREE.MathUtils.lerp(currentValue, value, speed);
+
+      if (Math.abs(currentValue - newValue) > 0.05) {
+        console.log(
+          `Applying morph target: ${target}, value: ${newValue.toFixed(2)}`,
+        );
+      }
+
+      skinnedMesh.morphTargetInfluences[index] = newValue;
+      applied = true;
 
       // if (!setupMode) {
       //   try {
@@ -175,7 +183,26 @@ export function Avatar({
 
   // Handle audio playback for lip sync
   useEffect(() => {
-    if (!currentMessage?.audio) return;
+    if (!currentMessage?.audio) {
+      console.log("No audio data in current message, skipping lip sync setup");
+      return;
+    }
+
+    console.log("Setting up lip sync with current message:", {
+      hasAudio: !!currentMessage.audio,
+      hasLipSync: !!currentMessage.lipsync,
+      mouthCuesCount: currentMessage.lipsync?.mouthCues?.length || 0,
+    });
+
+    // Debug: Log the full lipsync data structure
+    if (currentMessage.lipsync) {
+      console.log(
+        "Full lipsync data structure:",
+        JSON.stringify(currentMessage.lipsync, null, 2),
+      );
+    } else {
+      console.error("Missing lipsync data in currentMessage");
+    }
 
     // Create or reset audio element
     if (!audioRef.current) {
@@ -189,16 +216,26 @@ export function Avatar({
     audio.playbackRate = 1.0;
 
     // Log lip sync data for debugging
-    if (
-      process.env.NODE_ENV === "development" &&
-      currentMessage?.lipsync?.mouthCues
-    ) {
+    if (currentMessage?.lipsync?.mouthCues) {
       console.log(
         `Lip sync data loaded with ${currentMessage.lipsync.mouthCues.length} mouth cues`,
       );
       if (currentMessage.lipsync.metadata) {
         console.log(
           `Audio duration from metadata: ${currentMessage.lipsync.metadata.duration}s`,
+        );
+      }
+
+      // Log the first few mouth cues for debugging
+      if (currentMessage.lipsync.mouthCues.length > 0) {
+        console.log(
+          "First few mouth cues:",
+          currentMessage.lipsync.mouthCues
+            .slice(0, 5)
+            .map(
+              (cue) =>
+                `${cue.value} (${cue.start.toFixed(2)}s - ${cue.end.toFixed(2)}s)`,
+            ),
         );
       }
     }
@@ -221,6 +258,7 @@ export function Avatar({
         if (!obj) return false;
 
         if (obj.userData?.onMessagePlayed) {
+          console.log("Found onMessagePlayed callback in userData, calling it");
           obj.userData.onMessagePlayed();
           return true;
         }
@@ -234,6 +272,9 @@ export function Avatar({
         let found = false;
         obj.traverse((child) => {
           if (!found && child.userData?.onMessagePlayed) {
+            console.log(
+              "Found onMessagePlayed callback in child userData, calling it",
+            );
             child.userData.onMessagePlayed();
             found = true;
           }
@@ -243,7 +284,10 @@ export function Avatar({
       };
 
       if (currentMessage) {
-        findAndCallCallback(group.current);
+        const callbackFound = findAndCallCallback(group.current);
+        if (!callbackFound) {
+          console.warn("onMessagePlayed callback not found in any userData");
+        }
       }
     };
 
@@ -253,19 +297,17 @@ export function Avatar({
     audio.onended = handleAudioEnd;
 
     // Add timeupdate event for debugging
-    if (process.env.NODE_ENV === "development") {
-      const handleTimeUpdate = () => {
-        // Log every second for debugging
-        if (
-          Math.floor(audio.currentTime) !== Math.floor(audio.currentTime - 0.1)
-        ) {
-          console.log(
-            `Audio time: ${audio.currentTime.toFixed(2)}s / ${audio.duration.toFixed(2)}s`,
-          );
-        }
-      };
-      audio.ontimeupdate = handleTimeUpdate;
-    }
+    const handleTimeUpdate = () => {
+      // Log every second for debugging
+      if (
+        Math.floor(audio.currentTime) !== Math.floor(audio.currentTime - 0.1)
+      ) {
+        console.log(
+          `Audio time: ${audio.currentTime.toFixed(2)}s / ${audio.duration.toFixed(2)}s`,
+        );
+      }
+    };
+    audio.ontimeupdate = handleTimeUpdate;
 
     // Handle errors
     audio.onerror = (e) => {
@@ -273,18 +315,47 @@ export function Avatar({
       handleAudioEnd(); // Ensure message completion even if audio fails
     };
 
+    // Start playing as soon as possible
+    if (audio.readyState >= 2) {
+      // HAVE_CURRENT_DATA or higher
+      handleCanPlay();
+    }
+
     // Cleanup function
     return () => {
       audio.oncanplay = null;
       audio.onended = null;
       audio.onerror = null;
-      if (process.env.NODE_ENV === "development") {
-        audio.ontimeupdate = null;
-      }
+      audio.ontimeupdate = null;
       audio.pause();
       audio.src = "";
     };
   }, [currentMessage, isSpeaking]);
+
+  // Debug state to track available morph targets
+  const [availableMorphTargets, setAvailableMorphTargets] = useState<string[]>(
+    [],
+  );
+
+  // Collect available morph targets for debugging
+  useEffect(() => {
+    if (!scene) return;
+
+    const morphTargets: string[] = [];
+    scene.traverse((child) => {
+      const skinnedMesh = child as THREE.SkinnedMesh;
+      if (skinnedMesh.isSkinnedMesh && skinnedMesh.morphTargetDictionary) {
+        Object.keys(skinnedMesh.morphTargetDictionary).forEach((key) => {
+          if (!morphTargets.includes(key)) {
+            morphTargets.push(key);
+          }
+        });
+      }
+    });
+
+    setAvailableMorphTargets(morphTargets);
+    console.log("Available morph targets:", morphTargets);
+  }, [scene]);
 
   useFrame(() => {
     // LIPSYNC
@@ -293,11 +364,19 @@ export function Avatar({
     // }
 
     // Handle Rhubarb lip sync data if available
-    const appliedMorphTargets: string[] = [];
+    const appliedMorphs: Record<string, boolean> = {};
+
     if (currentMessage?.lipsync?.mouthCues && isSpeaking && audioRef.current) {
       if (!audioRef.current.paused && !isNaN(audioRef.current.duration)) {
         const currentAudioTime = audioRef.current.currentTime;
         const mouthCues = currentMessage.lipsync.mouthCues;
+
+        // Debug: Log lip sync status every second
+        if (Math.floor(currentAudioTime * 10) % 10 === 0) {
+          console.log(
+            `Lip sync active: audio time ${currentAudioTime.toFixed(2)}s, mouth cues: ${mouthCues.length}`,
+          );
+        }
 
         if (mouthCues.length > 0) {
           // Find the current mouth cue based on time
@@ -310,11 +389,28 @@ export function Avatar({
             }
           }
 
+          // Debug: Log when no active cue is found
+          if (!activeCue && Math.floor(currentAudioTime * 10) % 10 === 0) {
+            console.log(
+              `No active mouth cue found at time ${currentAudioTime.toFixed(2)}s`,
+            );
+            // Log the first few cues for debugging
+            console.log(
+              "Available cues:",
+              mouthCues
+                .slice(0, 5)
+                .map(
+                  (cue) =>
+                    `${cue.value} (${cue.start.toFixed(2)}s - ${cue.end.toFixed(2)}s)`,
+                ),
+            );
+          }
+
           // Apply the active cue with transition
           if (activeCue) {
-            const viseme =
-              phonemeToViseme[activeCue.value] || phonemeToViseme.X;
-            appliedMorphTargets.push(viseme);
+            const phoneme = activeCue.value;
+            const morphTargets =
+              phonemeToMorphTargets[phoneme] || phonemeToMorphTargets.X;
 
             // Calculate transition progress with improved easing
             const cueProgress = Math.min(
@@ -329,30 +425,92 @@ export function Avatar({
             // Smoother easing function for more natural mouth movement
             const easedProgress = 0.8 - Math.cos(cueProgress * Math.PI) / 2.5;
 
-            // Apply viseme with dynamic interpolation - higher intensity for better visibility
-            lerpMorphTarget(viseme, easedProgress, 0.5);
+            // Apply all morph targets for this phoneme
+            Object.entries(morphTargets).forEach(([morphName, intensity]) => {
+              // Check if this morph target exists in the available morph targets
+              if (availableMorphTargets.includes(morphName)) {
+                const value = intensity * easedProgress;
+                lerpMorphTarget(morphName, value, 0.5);
+                appliedMorphs[morphName] = true;
+              } else {
+                // Try alternative morph target names
+                const alternatives = [
+                  // Common variations of morph target names
+                  morphName.toLowerCase(),
+                  morphName.toUpperCase(),
+                  `viseme_${morphName}`,
+                  `viseme${morphName}`,
+                  `mouth${morphName}`,
+                ];
 
-            // Debug info in development mode
-            if (process.env.NODE_ENV === "development") {
-              console.log(
-                `Lip sync: ${activeCue.value} (${viseme}) at ${currentAudioTime.toFixed(2)}s, progress: ${easedProgress.toFixed(2)}`,
+                for (const alt of alternatives) {
+                  if (availableMorphTargets.includes(alt)) {
+                    const value = intensity * easedProgress;
+                    lerpMorphTarget(alt, value, 0.5);
+                    appliedMorphs[alt] = true;
+                    break;
+                  }
+                }
+              }
+            });
+
+            // Fallback: If no specific morph targets were applied, use generic mouth open/close
+            if (Object.keys(appliedMorphs).length === 0) {
+              // Try to find any mouth-related morph targets
+              const mouthMorphs = availableMorphTargets.filter(
+                (name) =>
+                  name.toLowerCase().includes("mouth") ||
+                  name.toLowerCase().includes("viseme"),
               );
+
+              if (mouthMorphs.length > 0) {
+                // Use the first found mouth morph with intensity based on phoneme
+                const openAmount =
+                  phoneme === "X"
+                    ? 0.1
+                    : ["A", "C", "D", "E"].includes(phoneme)
+                      ? 0.8
+                      : 0.4;
+
+                mouthMorphs.forEach((morphName) => {
+                  if (morphName.toLowerCase().includes("open")) {
+                    lerpMorphTarget(morphName, openAmount * easedProgress, 0.5);
+                    appliedMorphs[morphName] = true;
+                  }
+                });
+              }
             }
+
+            // Debug info
+            console.log(
+              `Lip sync: ${phoneme} at ${currentAudioTime.toFixed(2)}s, progress: ${easedProgress.toFixed(2)}, applied: ${Object.keys(appliedMorphs).join(", ")}`,
+            );
           }
         }
 
-        // Reset all visemes that aren't currently active with smoother transition
-        Object.values(phonemeToViseme).forEach((viseme) => {
-          if (!appliedMorphTargets.includes(viseme)) {
-            lerpMorphTarget(viseme, 0, 0.2); // Slightly slower fade-out for smoother transitions
-          }
-        });
+        // Reset all mouth-related morph targets that aren't currently active
+        availableMorphTargets
+          .filter(
+            (name) =>
+              (name.toLowerCase().includes("mouth") ||
+                name.toLowerCase().includes("viseme")) &&
+              !appliedMorphs[name],
+          )
+          .forEach((name) => {
+            lerpMorphTarget(name, 0, 0.2); // Slightly slower fade-out for smoother transitions
+          });
       }
     } else {
-      // Reset all visemes when not speaking
-      Object.values(phonemeToViseme).forEach((viseme) => {
-        lerpMorphTarget(viseme, 0, 0.1);
-      });
+      // Reset all mouth-related morph targets when not speaking
+      availableMorphTargets
+        .filter(
+          (name) =>
+            name.toLowerCase().includes("mouth") ||
+            name.toLowerCase().includes("viseme"),
+        )
+        .forEach((name) => {
+          lerpMorphTarget(name, 0, 0.1);
+        });
     }
 
     if (
@@ -486,6 +644,22 @@ export function Avatar({
     nextBlink();
     return () => clearTimeout(blinkTimeout);
   }, []);
+
+  // Set up the onMessagePlayed callback in userData
+  useEffect(() => {
+    if (group.current && props.userData?.onMessagePlayed) {
+      console.log("Setting up onMessagePlayed callback in userData");
+      group.current.userData = {
+        ...group.current.userData,
+        onMessagePlayed: props.userData.onMessagePlayed,
+      };
+    } else if (group.current) {
+      console.log(
+        "No onMessagePlayed callback found in props.userData:",
+        props.userData,
+      );
+    }
+  }, [props.userData, group]);
 
   return (
     <group ref={group} {...props} dispose={null}>

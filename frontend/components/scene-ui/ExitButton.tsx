@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -7,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { ExitButtonProps } from "./types";
 
 export function ExitButton({ onExit }: ExitButtonProps) {
+  const route = useRouter();
+
   const handleExit = () => {
     if (onExit) {
       onExit();
     } else {
       // Default behavior: navigate back
-      window.history.back();
+      route.push("/interactive/school");
     }
   };
 
