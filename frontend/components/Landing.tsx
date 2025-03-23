@@ -314,7 +314,7 @@ export const Landing = () => {
         letterSpacing: '1px',
         animation: 'bounce 2s infinite'
       }}>
-        GenAI Jesus
+        The Ugly Duckling
       </div>
       <style>
         {`
