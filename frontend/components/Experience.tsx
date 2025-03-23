@@ -5,14 +5,21 @@ import { Teacher } from "./Teacher";
 import { MathUtils } from "three";
 import { TypingBox } from "./TypingBox";
 import { SearchBar } from "./custom/SearchBar";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Message } from "@/lib/types";
 import { motion } from "motion/react";
+import { ImagePlane } from "./ImagePlane";
 
 export const Experience = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [sendDisabled, setSendDisabled] = useState(false);
+    const [currentImage, setCurrentImage] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
+    
+    // Add logging for image state changes
+    useEffect(() => {
+        console.log('Current image URL changed:', currentImage);
+    }, [currentImage]);
     
     const playAudio = (base64Audio: string) => {
         if (audioRef.current) {
@@ -51,19 +58,30 @@ export const Experience = () => {
               content: responseData.text,
               image: responseData.image 
             }]);
+            // Simulate API response
+            const mockResponse = {
+                text: "This is a test response with an image!",
+                audio: "base64_audio_string_here",
+                imageUrl: "https://images.saymedia-content.com/.image/t_share/MTc2MjYxMDA5ODUyNjA1NjEz/ten-facts-about-zero-two.png"
+            };
+
+            console.log('Setting new image URL:', mockResponse.imageUrl);
+            setCurrentImage(mockResponse.imageUrl);
+            
+            setMessages((prev) => [...prev, { role: 'model', content: mockResponse.text }]);
             
             // Play the audio response
-            if (responseData.audio) {
-                playAudio(responseData.audio);
+            if (mockResponse.audio) {
+                playAudio(mockResponse.audio);
             }
         } catch (error) {
-            console.error('Error streaming response:', error);
+            console.error('Error:', error);
             setMessages((prev) => [
-            ...prev,
-            {
-                role: 'model',
-                content: 'Sorry, there was an error processing your request. Please try again.',
-            },
+                ...prev,
+                {
+                    role: 'model',
+                    content: 'Sorry, there was an error processing your request. Please try again.',
+                },
             ]);
         } finally {
             setSendDisabled(false);
@@ -83,6 +101,16 @@ export const Experience = () => {
                     <Teacher teacher="krins" position={[-12.3, -12.0, -25.0]} scale={7.0} rotation-y={MathUtils.degToRad(30)}/>
                     {/* <Gltf src="/models/anime_class_room.glb" position={[2.5, -2.8, 10.0]} rotation={[0, Math.PI, 0]} /> */}
                     <Gltf src="/models/anime_classroom.glb" position={[-12.3, -20.0, 59.0]} rotation={[0, MathUtils.degToRad(270), 0]} />
+                    
+                    {/* Display the image if available */}
+                    {currentImage && (
+                        <ImagePlane 
+                            imageUrl={currentImage}
+                            position={[4.5, 4.5, -30]} // Moved to center, closer to camera
+                            scale={[30, 10, 10]} // Smaller scale
+                            rotation={[0, 0, 0]} // No rotation
+                        />
+                    )}
                 </Canvas>
             </div>
             <motion.div
@@ -127,7 +155,7 @@ export const Experience = () => {
 const CameraManager = () => {
     return <CameraControls 
         minZoom={1}
-        maxZoom={3}
+        maxZoom={12}
         polarRotateSpeed={-0.3}
         azimuthRotateSpeed={-0.3}
         mouseButtons={{
