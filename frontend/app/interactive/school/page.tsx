@@ -1,95 +1,11 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Mic, Send, X } from "lucide-react";
 
 import { avatars } from "@/config/avatars";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-
-interface ChatMessage {
-  id: string;
-  content: string;
-  sender: "user" | "avatar";
-  timestamp: Date;
-}
 
 export default function InteractiveSchoolPage() {
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
-  const [isChatVisible, setIsChatVisible] = useState(true);
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
-    {
-      id: "1",
-      content: "Welcome to the Academy of Talents! How can I help you today?",
-      sender: "avatar",
-      timestamp: new Date(),
-    },
-  ]);
-
-  const toggleChatVisibility = () => {
-    setIsChatVisible(!isChatVisible);
-  };
-
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
-
-    // Add user message to chat history
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content: message,
-      sender: "user",
-      timestamp: new Date(),
-    };
-
-    setChatHistory((prev) => [...prev, userMessage]);
-
-    // Simulate AI response after a short delay
-    setTimeout(() => {
-      const aiResponse: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        content:
-          "I'm here to help you navigate the school. What would you like to know?",
-        sender: "avatar",
-        timestamp: new Date(),
-      };
-      setChatHistory((prev) => [...prev, aiResponse]);
-    }, 1000);
-
-    // Clear the input
-    setMessage("");
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  useEffect(() => {
-    // Simulate loading the 3D environment
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-900">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-t-2 border-b-2 border-blue-500"></div>
-          <p className="text-xl text-white">Loading School Environment...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="relative min-h-screen bg-slate-900">
       {/* Background */}

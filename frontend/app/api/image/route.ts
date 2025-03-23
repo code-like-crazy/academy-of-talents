@@ -1,38 +1,40 @@
-import { NextRequest } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'path';
+import { mkdir, writeFile } from "node:fs/promises";
+import { join } from "path";
+import { NextRequest } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 if (!process.env.GOOGLE_API_KEY) {
-  throw new Error('GOOGLE_API_KEY is not defined');
+  throw new Error("GOOGLE_API_KEY is not defined");
 }
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash",
-  systemInstruction: "You will take a prompt to generate an image, and you will enhance the prompt to make the best image. We are going for a colored drawing cartoon style. Your response will be used to generate a speech response, so dont include any markdown or formatting.",
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash",
+  systemInstruction:
+    "You will enhance image prompts to create high-quality, masterpiece-level artwork. Create vibrant, detailed images in a professional cartoon style with the following characteristics: best quality, masterpiece, highly detailed, sharp focus, vivid colors, smooth lines, perfect composition, artistic, professional lighting, coherent style, polished finish. Maintain a family-friendly aesthetic suitable for all ages. Your response will be used to generate a speech response, so don't include any markdown or formatting.",
 });
 
 const google = {
   llm: model,
-}
+};
 
 export async function POST(req: NextRequest) {
   try {
     let { prompt } = await req.json();
-    
+
     console.log(prompt);
 
     if (!prompt) {
-      return new Response(JSON.stringify({ error: 'Prompt is required' }), {
+      return new Response(JSON.stringify({ error: "Prompt is required" }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
     }
 
     const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash-exp-image-generation",
       generationConfig: {
-        responseModalities: ['Text', 'Image']
+        responseModalities: ["Text", "Image"],
       },
     });
 
@@ -54,47 +56,46 @@ export async function POST(req: NextRequest) {
     }
 
     if (!imageData) {
-      throw new Error('No image was generated');
+      throw new Error("No image was generated");
     }
 
     // Ensure the images directory exists
-    const imagesDir = join(process.cwd(), 'public', 'images');
+    const imagesDir = join(process.cwd(), "public", "images");
     try {
       await mkdir(imagesDir, { recursive: true });
     } catch (error) {
-      console.error('Error creating images directory:', error);
+      console.error("Error creating images directory:", error);
       throw error;
     }
 
-    const imageBuffer = Buffer.from(imageData, 'base64');
+    const imageBuffer = Buffer.from(imageData, "base64");
     const timestamp = Date.now();
     const imagePath = join(imagesDir, `${timestamp}.png`);
     await writeFile(imagePath, imageBuffer);
 
     // Return the path without the 'public/' prefix
-    return new Response(JSON.stringify({ 
-      image: `/images/${timestamp}.png`,
-      description 
-    }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error('Error in image generation:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({
+        image: `/images/${timestamp}.png`,
+        description,
+      }),
       {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
+        headers: { "Content-Type": "application/json" },
+      },
     );
+  } catch (error) {
+    console.error("Error in image generation:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
 
 async function getChatResponse(query: string) {
   // Start a chat with history and system prompt
   const chat = google.llm.startChat({
-    history: []
+    history: [],
   });
 
   // Send message and get response

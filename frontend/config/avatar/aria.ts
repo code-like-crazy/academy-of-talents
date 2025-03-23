@@ -74,7 +74,7 @@ export const ariaAnimationOptions = [
   "Idle",
   "Angry",
   "Talking",
-  "Sad",
+  // "Sad",
   "Dance",
   "Focus",
   "Thinking",
