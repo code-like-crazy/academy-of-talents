@@ -46,101 +46,111 @@
 
 :root {
   /* Base Tokens */
-  --radius: 0.625rem; /* Rounded corners for buttons, cards, etc. */
-  --background: oklch(0.985 0 0); /* Off-white for backgrounds */
-  --foreground: oklch(0.145 0 0); /* Deep black for text */
-  --card: oklch(1 0 0); /* Pure white for cards */
-  --card-foreground: oklch(0.145 0 0); /* Black for card text */
-  --popover: oklch(1 0 0); /* White for popovers */
-  --popover-foreground: oklch(0.145 0 0); /* Black for popover text */
+  --radius: 1.25rem; /* Increased rounded corners for a bubbly look */
+  --background: oklch(
+    0.98 0.02 120
+  ); /* Very light pastel green for backgrounds */
+  --foreground: oklch(0.2 0.05 340); /* Soft dark pink for text */
+  --card: oklch(0.99 0.03 350); /* Very light pink for cards */
+  --card-foreground: oklch(0.2 0.05 340); /* Soft dark pink for card text */
+  --popover: oklch(0.99 0.03 350); /* Very light pink for popovers */
+  --popover-foreground: oklch(
+    0.2 0.05 340
+  ); /* Soft dark pink for popover text */
 
   /* Primary Colors (Cherry Blossom Pink) */
-  --primary: oklch(0.8 0.15 350); /* Soft pink for primary actions */
-  --primary-foreground: oklch(0.985 0 0); /* White text on primary buttons */
+  --primary: oklch(0.85 0.12 350); /* Soft pastel pink for primary actions */
+  --primary-foreground: oklch(0.2 0.05 340); /* Dark text on primary buttons */
 
   /* Secondary Colors (Wooden Brown) */
-  --secondary: oklch(0.6 0.1 50); /* Light wood for secondary elements */
+  --secondary: oklch(
+    0.8 0.08 60
+  ); /* Light pastel wood for secondary elements */
   --secondary-foreground: oklch(
-    0.145 0 0
-  ); /* Black text on secondary buttons */
+    0.2 0.05 340
+  ); /* Dark text on secondary buttons */
 
-  /* Accent Colors (Deep Red) */
-  --accent: oklch(0.5 0.2 20); /* Deep red for accents */
-  --accent-foreground: oklch(0.985 0 0); /* White text on accent elements */
+  /* Accent Colors (Sakura Pink) */
+  --accent: oklch(0.85 0.15 350); /* Soft sakura pink for accents */
+  --accent-foreground: oklch(0.2 0.05 340); /* Dark text on accent elements */
 
-  /* Muted Colors (Light Gray) */
-  --muted: oklch(0.97 0 0); /* Light gray for muted backgrounds */
-  --muted-foreground: oklch(0.556 0 0); /* Gray for muted text */
+  /* Muted Colors (Light Pastel) */
+  --muted: oklch(0.95 0.03 120); /* Light pastel green for muted backgrounds */
+  --muted-foreground: oklch(0.5 0.05 340); /* Muted pink for muted text */
 
-  /* Destructive Colors (Red for Errors) */
-  --destructive: oklch(0.577 0.245 27.325); /* Red for destructive actions */
+  /* Destructive Colors (Soft Red for Errors) */
+  --destructive: oklch(0.75 0.15 30); /* Soft red for destructive actions */
   --destructive-foreground: oklch(
-    0.985 0 0
+    0.99 0 0
   ); /* White text on destructive buttons */
 
   /* Borders and Inputs */
-  --border: oklch(0.922 0 0); /* Light gray for borders */
-  --input: oklch(0.922 0 0); /* Light gray for input fields */
+  --border: oklch(0.9 0.05 350); /* Light pink for borders */
+  --input: oklch(0.9 0.05 350); /* Light pink for input fields */
 
   /* Focus Ring (Gold for Highlights) */
-  --ring: oklch(0.8 0.2 80); /* Gold for focus rings */
+  --ring: oklch(0.8 0.15 80); /* Gold for focus rings */
 
   /* Chart Colors (For Visualizations) */
-  --chart-1: oklch(0.646 0.222 41.116); /* Cherry blossom pink */
-  --chart-2: oklch(0.6 0.118 184.704); /* Navy blue */
-  --chart-3: oklch(0.398 0.07 227.392); /* Pastel green */
-  --chart-4: oklch(0.828 0.189 84.429); /* Gold */
-  --chart-5: oklch(0.769 0.188 70.08); /* Deep red */
+  --chart-1: oklch(0.8 0.15 350); /* Cherry blossom pink */
+  --chart-2: oklch(0.7 0.1 200); /* Pastel blue */
+  --chart-3: oklch(0.8 0.1 120); /* Pastel green */
+  --chart-4: oklch(0.85 0.15 80); /* Pastel gold */
+  --chart-5: oklch(0.75 0.15 30); /* Pastel red */
 
   /* Sidebar (Wooden Theme) */
-  --sidebar: oklch(0.6 0.1 50); /* Light wood for sidebar */
-  --sidebar-foreground: oklch(0.145 0 0); /* Black text on sidebar */
+  --sidebar: oklch(0.8 0.08 60); /* Light pastel wood for sidebar */
+  --sidebar-foreground: oklch(0.2 0.05 340); /* Dark text on sidebar */
   --sidebar-primary: oklch(
-    0.8 0.15 350
+    0.85 0.12 350
   ); /* Soft pink for sidebar primary actions */
   --sidebar-primary-foreground: oklch(
-    0.985 0 0
-  ); /* White text on sidebar primary buttons */
-  --sidebar-accent: oklch(0.5 0.2 20); /* Deep red for sidebar accents */
+    0.2 0.05 340
+  ); /* Dark text on sidebar primary buttons */
+  --sidebar-accent: oklch(
+    0.85 0.15 350
+  ); /* Soft sakura pink for sidebar accents */
   --sidebar-accent-foreground: oklch(
-    0.985 0 0
-  ); /* White text on sidebar accent elements */
-  --sidebar-border: oklch(0.922 0 0); /* Light gray for sidebar borders */
-  --sidebar-ring: oklch(0.8 0.2 80); /* Gold for sidebar focus rings */
+    0.2 0.05 340
+  ); /* Dark text on sidebar accent elements */
+  --sidebar-border: oklch(0.9 0.05 350); /* Light pink for sidebar borders */
+  --sidebar-ring: oklch(0.8 0.15 80); /* Gold for sidebar focus rings */
 }
 
+/* We're focusing on light mode, so we'll keep this as a fallback but won't use it */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.98 0.02 120);
+  --foreground: oklch(0.2 0.05 340);
+  --card: oklch(0.99 0.03 350);
+  --card-foreground: oklch(0.2 0.05 340);
+  --popover: oklch(0.99 0.03 350);
+  --popover-foreground: oklch(0.2 0.05 340);
+  --primary: oklch(0.85 0.12 350);
+  --primary-foreground: oklch(0.2 0.05 340);
+  --secondary: oklch(0.8 0.08 60);
+  --secondary-foreground: oklch(0.2 0.05 340);
+  --muted: oklch(0.95 0.03 120);
+  --muted-foreground: oklch(0.5 0.05 340);
+  --accent: oklch(0.85 0.15 350);
+  --accent-foreground: oklch(0.2 0.05 340);
+  --destructive: oklch(0.75 0.15 30);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.9 0.05 350);
+  --input: oklch(0.9 0.05 350);
+  --ring: oklch(0.8 0.15 80);
+  --chart-1: oklch(0.8 0.15 350);
+  --chart-2: oklch(0.7 0.1 200);
+  --chart-3: oklch(0.8 0.1 120);
+  --chart-4: oklch(0.85 0.15 80);
+  --chart-5: oklch(0.75 0.15 30);
+  --sidebar: oklch(0.8 0.08 60);
+  --sidebar-foreground: oklch(0.2 0.05 340);
+  --sidebar-primary: oklch(0.85 0.12 350);
+  --sidebar-primary-foreground: oklch(0.2 0.05 340);
+  --sidebar-accent: oklch(0.85 0.15 350);
+  --sidebar-accent-foreground: oklch(0.2 0.05 340);
+  --sidebar-border: oklch(0.9 0.05 350);
+  --sidebar-ring: oklch(0.8 0.15 80);
 }
 
 @layer base {
@@ -149,5 +159,31 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+  }
+  /* Add some global styles for a more bubbly, rounded look */
+  button,
+  .btn,
+  input,
+  select,
+  textarea {
+    @apply rounded-xl px-6 py-3;
+  }
+  /* Increase padding for a more spacious look */
+  .container {
+    @apply px-6 py-4;
+  }
+  /* Add a subtle shadow to cards for depth */
+  .card,
+  [data-slot="card"] {
+    @apply rounded-2xl border-2 shadow-md;
+  }
+  /* Make headings use the heading font */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
   }
 }
