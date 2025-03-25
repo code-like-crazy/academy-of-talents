@@ -3,19 +3,16 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { button, useControls } from "leva";
 import * as THREE from "three";
 import { GLTF } from "three-stdlib";
 
-import { rhubarbPhonemes } from "@/config/avatar/rhubarb";
 import { AvailableAvatars } from "@/config/avatars";
 
 import { useAvatar } from "./hooks/useAvatar";
 import { ChatMessage } from "./hooks/useChat";
-import { useRhubarb } from "./hooks/useRhubarb";
 import { AvatarGLTFResult } from "./types";
 
-let setupMode = false;
+const setupMode = false;
 
 type Props = {
   type: AvailableAvatars;
@@ -29,7 +26,6 @@ type Props = {
 export function Avatar({
   type,
   expression = "default",
-  text = "",
   isSpeaking = false,
   currentMessage,
   animation,
@@ -62,8 +58,8 @@ export function Avatar({
   );
 
   const [blink, setBlink] = useState(false);
-  const [winkLeft, setWinkLeft] = useState(false);
-  const [winkRight, setWinkRight] = useState(false);
+  const [winkLeft, unusedWinkLeft] = useState(false);
+  const [winkRight, unusedWinkRight] = useState(false);
   const [facialExpression, setFacialExpression] = useState(expression);
 
   // Update facial expression when prop changes

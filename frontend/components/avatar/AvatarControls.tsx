@@ -1,7 +1,9 @@
 "use client";
 
-import { useControls, button } from "leva";
-import { facialExpressions } from "./facial-expressions";
+import { button, useControls } from "leva";
+
+import { teacherFacialExpressions } from "@/config/avatar/teacher";
+
 import type { AvatarGLTFResult } from "./types";
 
 type Props = {
@@ -47,7 +49,7 @@ export function AvatarControls({
     },
     facialExpression: {
       value: facialExpression,
-      options: Object.keys(facialExpressions),
+      options: Object.keys(teacherFacialExpressions),
       onChange: (value) => setFacialExpression(value),
     },
     enableSetupMode: button(() => {
@@ -99,7 +101,7 @@ export function AvatarControls({
             }
           },
         },
-      }))
+      })),
     );
   });
 

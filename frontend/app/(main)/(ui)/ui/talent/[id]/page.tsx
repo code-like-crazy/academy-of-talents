@@ -20,13 +20,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 interface TalentPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function TalentPage({ params }: TalentPageProps) {
-  const avatar = getAvatarById(params.id);
+export default async function TalentPage({ params }: TalentPageProps) {
+  const { id } = await params;
+
+  const avatar = getAvatarById(id);
 
   if (!avatar) {
     notFound();
@@ -212,7 +214,7 @@ export default function TalentPage({ params }: TalentPageProps) {
                     backgroundColor: "rgba(var(--primary), 0.05)",
                   }}
                 >
-                  <p className="text-foreground/70">"{prompt}"</p>
+                  <p className="text-foreground/70">&quot;{prompt}&quot;</p>
                 </motion.div>
               ))}
             </div>

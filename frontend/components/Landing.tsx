@@ -98,7 +98,7 @@ const MovingItem = (props: {
         ref.current.scale.z += randFloatSpread(RANDOMIZER_STRENGTH_SCALE);
       }
     }
-  }, []);
+  }, [props.randomizePosition, props.randomizeScale]);
 
   return (
     <group
@@ -276,67 +276,68 @@ const LandingExperience = ({
   onAnimationComplete: () => void;
 }) => {
   const { camera } = useThree();
-  const controlsRef = useRef<any>(null);
+  type OrbitControlsRef = {
+    enabled: boolean;
+    target: THREE.Vector3;
+    update: () => void;
+  };
+  const [isControlsEnabled, setIsControlsEnabled] = useState(true);
 
   useEffect(() => {
-    if (isZooming && camera && controlsRef.current) {
-      // Disable controls during animation
-      controlsRef.current.enabled = false;
+    if (!isZooming || !camera) return;
 
-      // Animate camera position and target
-      const startPosition = camera.position.clone();
-      const startTarget = controlsRef.current.target.clone();
+    setIsControlsEnabled(false);
 
-      // Adjust these values to get a better view of the duck's face
-      const endPosition = new THREE.Vector3(0.4, 0.1, 0.6);
-      const endTarget = new THREE.Vector3(0.9, 0.1, -0.5);
+    // Store initial camera position
+    const startPosition = camera.position.clone();
+    const startTarget = new THREE.Vector3(0, 0, 0);
 
-      const duration = 2000; // 2 seconds
-      const startTime = Date.now();
+    // Adjust these values to get a better view of the duck's face
+    const endPosition = new THREE.Vector3(0.4, 0.1, 0.6);
+    const endTarget = new THREE.Vector3(0.9, 0.1, -0.5);
 
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
+    const duration = 2000; // 2 seconds
+    const startTime = Date.now();
 
-        // Easing function for smooth animation
-        const easeProgress =
-          progress < 0.5
-            ? 2 * progress * progress
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
 
-        camera.position.lerpVectors(startPosition, endPosition, easeProgress);
-        controlsRef.current.target.lerpVectors(
-          startTarget,
-          endTarget,
-          easeProgress,
-        );
-        controlsRef.current.update();
+      // Easing function for smooth animation
+      const easeProgress =
+        progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          // Re-enable controls after animation
-          controlsRef.current.enabled = true;
-          // Notify parent that animation is complete
-          setTimeout(onAnimationComplete, 2000); // Wait 2 seconds before calling onAnimationComplete
-        }
-      };
+      camera.position.lerpVectors(startPosition, endPosition, easeProgress);
+      camera.lookAt(
+        new THREE.Vector3().lerpVectors(startTarget, endTarget, easeProgress),
+      );
 
-      animate();
-    }
-  }, [isZooming, camera, onAnimationComplete]);
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // Re-enable controls and notify parent
+        setIsControlsEnabled(true);
+        setTimeout(onAnimationComplete, 2000); // Wait 2 seconds before calling onAnimationComplete
+      }
+    };
+
+    animate();
+  }, [isZooming, camera, onAnimationComplete, setIsControlsEnabled]);
 
   return (
     <>
-      <OrbitControls
-        ref={controlsRef}
-        minAzimuthAngle={MathUtils.degToRad(-45)}
-        maxAzimuthAngle={MathUtils.degToRad(45)}
-        minPolarAngle={MathUtils.degToRad(45)}
-        maxPolarAngle={MathUtils.degToRad(90)}
-        minDistance={1}
-        maxDistance={8}
-      />
+      {isControlsEnabled && (
+        <OrbitControls
+          minAzimuthAngle={MathUtils.degToRad(-45)}
+          maxAzimuthAngle={MathUtils.degToRad(45)}
+          minPolarAngle={MathUtils.degToRad(45)}
+          maxPolarAngle={MathUtils.degToRad(90)}
+          minDistance={1}
+          maxDistance={8}
+        />
+      )}
       <ambientLight intensity={0.2} />
       <Environment preset="sunset" blur={0.8} />
       <group position={[0, -1, 0]}>
@@ -354,7 +355,7 @@ const LandingExperience = ({
 
 export const Landing = () => {
   const [isZooming, setIsZooming] = useState(false);
-  const [showExperience, setShowExperience] = useState(false);
+  const [showExperience] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -403,10 +404,6 @@ export const Landing = () => {
         console.error("Audio element not initialized");
       }
     }, 1000);
-  };
-
-  const handleAvatarSelect = (avatar: string) => {
-    window.location.href = `http://localhost:3000/interactive/avatar/${avatar}`;
   };
 
   if (showExperience) {

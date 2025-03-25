@@ -9,7 +9,7 @@ export default function ContactPage() {
       <section className="space-y-4 text-center">
         <h1 className="text-4xl font-bold tracking-tight">Contact Us</h1>
         <p className="text-foreground/80 mx-auto max-w-3xl text-xl">
-          Have questions or feedback? We'd love to hear from you!
+          {"Have questions or feedback? We'd love to hear from you!"}
         </p>
       </section>
 

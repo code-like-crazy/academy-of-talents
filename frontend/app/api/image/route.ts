@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash-exp-image-generation",
       generationConfig: {
+        // @ts-expect-error - responseModalities is valid according to the docs
         responseModalities: ["Text", "Image"],
       },
     });
@@ -42,7 +43,12 @@ export async function POST(req: NextRequest) {
     console.log(prompt);
 
     const response = await model.generateContent(prompt);
-    const result = response.response.candidates[0].content.parts;
+    // const result = response.response.candidates[0].content.parts;
+    const result = response.response.candidates?.[0].content.parts;
+
+    if (!result) {
+      throw new Error("No parts found in response");
+    }
 
     let imageData;
     let description;

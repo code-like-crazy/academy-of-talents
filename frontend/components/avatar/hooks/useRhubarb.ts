@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { rhubarbPhonemes, rhubarbConfig } from '@/config/avatar/rhubarb';
+import { useEffect, useRef, useState } from "react";
+
+import { rhubarbConfig, rhubarbPhonemes } from "@/config/avatar/rhubarb";
 
 type RhubarbPhoneme = keyof typeof rhubarbPhonemes;
 
@@ -9,74 +10,78 @@ interface UseRhubarbProps {
   isPlaying?: boolean;
 }
 
-export const useRhubarb = ({ text, onPhonemeChange, isPlaying = true }: UseRhubarbProps) => {
-  const [currentPhoneme, setCurrentPhoneme] = useState<RhubarbPhoneme>('X');
-  const timeoutRef = useRef<NodeJS.Timeout>();
+export const useRhubarb = ({
+  text,
+  onPhonemeChange,
+  isPlaying = true,
+}: UseRhubarbProps) => {
+  const [currentPhoneme, setCurrentPhoneme] = useState<RhubarbPhoneme>("X");
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const phonemeQueueRef = useRef<RhubarbPhoneme[]>([]);
 
   // Convert text to phonemes (simplified version)
   const textToPhonemes = (text: string): RhubarbPhoneme[] => {
-    const words = text.toLowerCase().split(' ');
+    const words = text.toLowerCase().split(" ");
     const phonemes: RhubarbPhoneme[] = [];
-    
+
     words.forEach((word, index) => {
       // Add phonemes for each character
-      word.split('').forEach(char => {
+      word.split("").forEach((char) => {
         // Map characters to phonemes (simplified)
         switch (char) {
-          case 'a':
-          case 'e':
-          case 'i':
-          case 'o':
-          case 'u':
-            phonemes.push('A');
+          case "a":
+          case "e":
+          case "i":
+          case "o":
+          case "u":
+            phonemes.push("A");
             break;
-          case 'b':
-          case 'm':
-          case 'p':
-            phonemes.push('B');
+          case "b":
+          case "m":
+          case "p":
+            phonemes.push("B");
             break;
-          case 'c':
-          case 'k':
-          case 's':
-            phonemes.push('C');
+          case "c":
+          case "k":
+          case "s":
+            phonemes.push("C");
             break;
-          case 'd':
-          case 'n':
-          case 't':
-            phonemes.push('D');
+          case "d":
+          case "n":
+          case "t":
+            phonemes.push("D");
             break;
-          case 'f':
-          case 'v':
-            phonemes.push('F');
+          case "f":
+          case "v":
+            phonemes.push("F");
             break;
-          case 'g':
-          case 'j':
-            phonemes.push('G');
+          case "g":
+          case "j":
+            phonemes.push("G");
             break;
-          case 'h':
-          case 'l':
-          case 'r':
-            phonemes.push('H');
+          case "h":
+          case "l":
+          case "r":
+            phonemes.push("H");
             break;
           default:
-            phonemes.push('X');
+            phonemes.push("X");
         }
       });
-      
+
       // Add rest state between words
       if (index < words.length - 1) {
-        phonemes.push('X');
+        phonemes.push("X");
       }
     });
-    
+
     return phonemes;
   };
 
   // Play next phoneme
   const playNextPhoneme = () => {
     if (phonemeQueueRef.current.length === 0) {
-      setCurrentPhoneme('X');
+      setCurrentPhoneme("X");
       return;
     }
 
@@ -95,7 +100,7 @@ export const useRhubarb = ({ text, onPhonemeChange, isPlaying = true }: UseRhuba
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      setCurrentPhoneme('X');
+      setCurrentPhoneme("X");
       return;
     }
 
@@ -113,4 +118,4 @@ export const useRhubarb = ({ text, onPhonemeChange, isPlaying = true }: UseRhuba
     currentPhoneme,
     isPlaying,
   };
-}; 
+};

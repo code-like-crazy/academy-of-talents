@@ -1,5 +1,5 @@
 import { exec } from "child_process";
-import { readFile, unlink, writeFile } from "node:fs/promises";
+import { readFile, unlink } from "node:fs/promises";
 import path from "path";
 import { promisify } from "util";
 
@@ -34,7 +34,11 @@ export class LipSyncService {
         await execAsync("which ffmpeg");
         console.log("ffmpeg is installed, proceeding with conversion");
       } catch (error) {
-        console.log("ffmpeg is not installed, skipping lip sync");
+        if (error instanceof Error) {
+          console.error(error.message);
+        } else {
+          console.error("ffmpeg is not installed, skipping lip sync");
+        }
         // Return a fallback empty lip sync data structure if ffmpeg is not installed
         return {
           metadata: {
@@ -52,20 +56,22 @@ export class LipSyncService {
       try {
         const ffmpegCommand = `ffmpeg -y -i "${audioFile}" "${wavFile}"`;
         console.log(`Running command: ${ffmpegCommand}`);
-        const { stdout, stderr } = await execAsync(ffmpegCommand);
+        const { stderr } = await execAsync(ffmpegCommand);
         if (stderr) console.log("FFmpeg stderr:", stderr);
         console.log(`Conversion done in ${Date.now() - startTime}ms`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("FFmpeg conversion error:", error);
         console.log("Skipping lip sync due to ffmpeg error");
 
         // Return a fallback empty lip sync data structure if ffmpeg fails
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
         return {
           metadata: {
             soundFile: audioFile,
             duration: 0,
             processedAt: new Date().toISOString(),
-            error: `FFmpeg error: ${error.message || "Unknown error"}`,
+            error: `FFmpeg error: ${errorMessage}`,
           },
           mouthCues: [],
         };
@@ -88,7 +94,7 @@ export class LipSyncService {
       try {
         await readFile(rhubarbPath);
         console.log(`Rhubarb executable found at: ${rhubarbPath}`);
-      } catch (error) {
+      } catch (/* eslint-disable-next-line @typescript-eslint/no-unused-vars */ _) {
         console.error(`Rhubarb executable not found at: ${rhubarbPath}`);
 
         // Try to find rhubarb in alternative locations
@@ -106,7 +112,7 @@ export class LipSyncService {
             console.log(`Found rhubarb at alternative location: ${altPath}`);
             rhubarbPath = altPath;
             break;
-          } catch (e) {
+          } catch (/* eslint-disable-next-line @typescript-eslint/no-unused-vars */ _) {
             // Continue checking other paths
           }
         }
@@ -123,16 +129,17 @@ export class LipSyncService {
         // Use phonetic recognition for faster processing
         const rhubarbCommand = `"${rhubarbPath}" -f json -o "${jsonFile}" "${wavFile}" -r phonetic`;
         console.log(`Running command: ${rhubarbCommand}`);
-        const { stdout, stderr } = await execAsync(rhubarbCommand);
+        const { stderr } = await execAsync(rhubarbCommand);
         if (stderr) console.log("Rhubarb stderr:", stderr);
         console.log(`Lip sync data generated in ${Date.now() - startTime}ms`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Rhubarb error:", error);
 
         // Check if the error is related to macOS security (developer cannot be verified)
+        const errorMessage = error instanceof Error ? error.message : "";
         if (
-          error.message &&
-          error.message.includes(
+          errorMessage &&
+          errorMessage.includes(
             "cannot be opened because the developer cannot be verified",
           )
         ) {
@@ -153,9 +160,9 @@ export class LipSyncService {
           };
         }
 
-        throw new Error(
-          `Failed to generate lip sync data: ${error.message || "Unknown error"}`,
-        );
+        const errorMessage2 =
+          error instanceof Error ? error.message : "Unknown error";
+        throw new Error(`Failed to generate lip sync data: ${errorMessage2}`);
       }
 
       // Step 3: Read and validate the generated JSON file
@@ -191,10 +198,10 @@ export class LipSyncService {
             lipSyncData.mouthCues[lipSyncData.mouthCues.length - 1];
           lipSyncData.metadata.duration = lastCue.end;
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error reading or parsing lip sync JSON:", error);
         throw new Error(
-          `Failed to read or parse lip sync data: ${error.message || "Unknown error"}`,
+          `Failed to read or parse lip sync data: ${error instanceof Error ? error.message : "Unknown error"}`,
         );
       }
 

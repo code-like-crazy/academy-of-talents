@@ -17,7 +17,7 @@ const SimpleAvatar = ({
 };
 
 const CameraController = () => {
-  const { camera, gl } = useThree();
+  const { camera } = useThree();
   const [moveSpeed] = useState(0.1);
   const keys = useRef<{ [key: string]: boolean }>({});
 

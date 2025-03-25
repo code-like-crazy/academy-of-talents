@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { AvailableAvatars } from "@/config/avatars";
 
@@ -29,7 +28,6 @@ export function Scene({
   text = "",
   isSpeaking = false,
 }: SceneProps) {
-  const router = useRouter();
   const [isChatVisible, setIsChatVisible] = useState(true);
   const [avatarZoom, setAvatarZoom] = useState<
     [x: number, y: number, z: number]
@@ -122,7 +120,7 @@ export function Scene({
   };
 
   // Initialize the chat hook
-  const { currentMessage, sendMessage, onMessagePlayed, loading } = useChat({
+  const { currentMessage, sendMessage, onMessagePlayed } = useChat({
     avatarName: avatarType, // Use the current avatar type
   });
 

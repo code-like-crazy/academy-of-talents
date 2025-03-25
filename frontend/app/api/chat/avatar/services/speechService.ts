@@ -96,15 +96,20 @@ export class SpeechService {
       try {
         const fallbackBuffer = await readFile(fallbackFile);
         await writeFile(outputFile, fallbackBuffer);
-      } catch (fallbackError) {
-        // If even the fallback file isn't available, create an empty MP3 file
-        console.warn("Fallback audio file not available, creating empty file");
-        // Create a minimal empty MP3 file (just a few bytes of header)
-        const emptyMp3 = Buffer.from([
-          0xff, 0xfb, 0x90, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-          0x00, 0x00, 0x00, 0x00, 0x00,
-        ]);
-        await writeFile(outputFile, emptyMp3);
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        } else {
+          // If even the fallback file isn't available, create an empty MP3 file
+          console.warn(
+            "Fallback audio file not available, creating empty file",
+          );
+          const emptyMp3 = Buffer.from([
+            0xff, 0xfb, 0x90, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00,
+          ]);
+          await writeFile(outputFile, emptyMp3);
+        }
       }
 
       return outputFile;

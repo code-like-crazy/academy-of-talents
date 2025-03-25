@@ -5,13 +5,13 @@ import { getAvatarBackground, getAvatarById } from "@/config/avatars";
 import { Scene } from "@/components/Scene";
 
 type Props = {
-  params: {
-    id: Promise<string>;
-  };
+  params: Promise<{
+    id: string;
+  }>;
 };
 
 const AvatarPage = async ({ params }: Props) => {
-  const id = await params.id;
+  const { id } = await params;
 
   const avatar = getAvatarById(id);
 
